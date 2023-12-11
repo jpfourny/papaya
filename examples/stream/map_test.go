@@ -2,9 +2,9 @@ package stream
 
 import (
 	"fmt"
-	"papaya/pkg/mapper"
-	"papaya/pkg/pair"
-	"papaya/pkg/stream"
+	"github.com/jpfourny/papaya/pkg/mapper"
+	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/pkg/stream"
 	"testing"
 )
 

@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"papaya/pkg/pointer"
-	"papaya/pkg/pred"
+	"github.com/jpfourny/papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/pred"
 	"testing"
 )
 

@@ -2,8 +2,8 @@ package mapper
 
 import (
 	"fmt"
-	"papaya/pkg/constraint"
-	"papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/pkg/pointer"
 	"strconv"
 )
 

@@ -2,7 +2,7 @@ package cmp
 
 import (
 	stdcmp "cmp"
-	"papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/pkg/constraint"
 )
 
 // Comparer is a function that compares two values of the same type E and returns an integer.

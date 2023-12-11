@@ -3,8 +3,8 @@ package stream
 import (
 	"context"
 	"fmt"
-	"papaya/pkg/mapper"
-	"papaya/pkg/pair"
+	"github.com/jpfourny/papaya/pkg/mapper"
+	"github.com/jpfourny/papaya/pkg/pair"
 	"reflect"
 	"slices"
 	"sync"

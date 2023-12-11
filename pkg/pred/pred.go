@@ -1,9 +1,9 @@
 package pred
 
 import (
+	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/pkg/constraint"
 	"math"
-	"papaya/pkg/cmp"
-	"papaya/pkg/constraint"
 	"reflect"
 )
 

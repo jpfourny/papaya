@@ -1,7 +1,7 @@
 package cmp
 
 import (
-	"papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/pointer"
 	"strings"
 	"testing"
 )

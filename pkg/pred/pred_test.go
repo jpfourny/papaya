@@ -1,8 +1,8 @@
 package pred
 
 import (
-	"papaya/pkg/pair"
-	"papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/pkg/pointer"
 	"testing"
 )
 

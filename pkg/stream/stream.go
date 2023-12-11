@@ -2,10 +2,10 @@ package stream
 
 import (
 	"context"
-	"papaya/pkg/cmp"
-	"papaya/pkg/constraint"
-	"papaya/pkg/mapper"
-	"papaya/pkg/pair"
+	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/pkg/mapper"
+	"github.com/jpfourny/papaya/pkg/pair"
 	"slices"
 	"strings"
 )
