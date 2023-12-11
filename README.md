@@ -2,7 +2,7 @@
 
 ## Description
 
-Core library for Go providing various utilities.
+A curated collection of utility functions and types absent from the Go standard library that make life easier.
 
 See tests and examples for usage.
 
