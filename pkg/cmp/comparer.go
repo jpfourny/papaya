@@ -121,11 +121,10 @@ func DerefNilLast[E any](cmp Comparer[E]) Comparer[*E] {
 //		{"John", "Smith"},
 //	}
 //
-//	// Sort by LastName, then by FirstName.
+//	// Sort by LastName.
 //	s := stream.SortBy(
 //		stream.FromSlice(people),
 //		Comparing(func(p Person) string { return p.LastName }),
-//
 //	)
 //	out := stream.DebugString(s) // <Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}>
 func Comparing[E any, K constraint.Ordered](ke KeyExtractor[E, K]) Comparer[E] {
@@ -150,10 +149,13 @@ func Comparing[E any, K constraint.Ordered](ke KeyExtractor[E, K]) Comparer[E] {
 //		{"John", "Smith"},
 //	}
 //
-//	// Sort by LastName, then by FirstName.
+//	// Sort by LastName.
 //	s := stream.SortBy(
 //		stream.FromSlice(people),
-//		ComparingBy(func(p Person) string { return p.LastName }, Natural[string]()),
+//		ComparingBy(
+//			func(p Person) string { return p.LastName }, 
+//			Natural[string](),
+//		),
 //	)
 //	out := stream.DebugString(s) // <Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}>
 func ComparingBy[E any, K any](ke KeyExtractor[E, K], cmp Comparer[K]) Comparer[E] {
