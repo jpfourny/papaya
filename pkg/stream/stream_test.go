@@ -647,28 +647,27 @@ func TestGroupByKey(t *testing.T) {
 
 func TestReduceByKey(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		s := ReduceByKey(Empty[pair.Pair[int, string]](), func(a, b string) string {
-			return a + ", " + b
-		})
+		s := ReduceByKey(
+			Empty[pair.Pair[int, string]](),
+			func(a, b string) string { return a + ", " + b },
+		)
 		got := CollectMap(s)
 		if len(got) != 0 {
 			t.Fatalf("got %#v, want %#v", got, map[int]string{})
 		}
-		if got[0] != "" {
-			t.Fatalf("got %#v, want %#v", got[0], "")
-		}
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		s := ReduceByKey(Of(
-			pair.Of(1, "one"),
-			pair.Of(2, "two"),
-			pair.Of(1, "uno"),
-			pair.Of(3, "three"),
-			pair.Of(2, "dos"),
-		), func(a, b string) string {
-			return a + ", " + b
-		})
+		s := ReduceByKey(
+			Of(
+				pair.Of(1, "one"),
+				pair.Of(2, "two"),
+				pair.Of(1, "uno"),
+				pair.Of(3, "three"),
+				pair.Of(2, "dos"),
+			),
+			func(a, b string) string { return a + ", " + b },
+		)
 		got := CollectMap(s)
 		want := map[int]string{
 			1: "one, uno",
@@ -686,15 +685,98 @@ func TestReduceByKey(t *testing.T) {
 	})
 
 	t.Run("limited", func(t *testing.T) {
-		s := ReduceByKey(Of(
-			pair.Of(1, "one"),
-			pair.Of(2, "two"),
-			pair.Of(1, "uno"),
-			pair.Of(3, "three"),
-			pair.Of(2, "dos"),
-		), func(a, b string) string {
-			return a + ", " + b
-		})
+		s := ReduceByKey(
+			Of(
+				pair.Of(1, "one"),
+				pair.Of(2, "two"),
+				pair.Of(1, "uno"),
+				pair.Of(3, "three"),
+				pair.Of(2, "dos"),
+			),
+			func(a, b string) string { return a + ", " + b },
+		)
+		got := CollectMap(Limit(s, 1)) // Stops stream after 1 elements.
+		if len(got) != 1 {
+			t.Fatal("expected 1 element; got", len(got)) // Actual value is unpredictable due to map iteration order.
+		}
+	})
+}
+
+func TestAggregateByKey(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := AggregateByKey(
+			Empty[pair.Pair[int, string]](),
+			"",
+			func(a string, e string) string {
+				if a == "" {
+					return e
+				}
+				return a + ", " + e
+			}, func(a string) string {
+				return "<" + a + ">"
+			})
+		got := CollectMap(s)
+		if len(got) != 0 {
+			t.Fatalf("got %#v, want %#v", got, map[int]string{})
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := AggregateByKey(
+			Of(
+				pair.Of(1, "one"),
+				pair.Of(2, "two"),
+				pair.Of(1, "uno"),
+				pair.Of(3, "three"),
+				pair.Of(2, "dos"),
+			),
+			"",
+			func(a string, e string) string {
+				if a == "" {
+					return e
+				}
+				return a + ", " + e
+			},
+			func(a string) string {
+				return "<" + a + ">"
+			},
+		)
+		got := CollectMap(s)
+		want := map[int]string{
+			1: "<one, uno>",
+			2: "<two, dos>",
+			3: "<three>",
+		}
+		if len(got) != len(want) {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		for k, v := range want {
+			if got[k] != v {
+				t.Fatalf("got %#v, want %#v", got[k], want[k])
+			}
+		}
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := AggregateByKey(
+			Of(
+				pair.Of(1, "one"),
+				pair.Of(2, "two"),
+				pair.Of(1, "uno"),
+				pair.Of(3, "three"),
+				pair.Of(2, "dos"),
+			),
+			"",
+			func(a string, e string) string {
+				if a == "" {
+					return e
+				}
+				return a + ", " + e
+			},
+			func(a string) string {
+				return "<" + a + ">"
+			},
+		)
 		got := CollectMap(Limit(s, 1)) // Stops stream after 1 elements.
 		if len(got) != 1 {
 			t.Fatal("expected 1 element; got", len(got)) // Actual value is unpredictable due to map iteration order.
@@ -720,7 +802,7 @@ func TestCollectMap(t *testing.T) {
 	}
 	for k, v := range want {
 		if got[k] != v {
-			t.Fatalf("got %#v, want %#v", got, want)
+			t.Fatalf("got[%d] %#v, want %#v", k, got, want)
 		}
 	}
 }

@@ -56,7 +56,7 @@ type Reducer[E any] func(e1, e2 E) (result E)
 // Accumulator represents a function that takes an accumulated value of type A and an element of type E,
 // and returns the updated accumulated value of type A.
 // The Accumulator is commonly used in the `Aggregate` function to combine elements of a stream into a single result.
-type Accumulator[E, A any] func(a A, e E) (result A)
+type Accumulator[A, E any] func(a A, e E) (result A)
 
 // Finisher represents a function that takes an accumulated value of type A and returns the finished result of type F.
 // The Finisher is commonly used in the `Aggregate` function to compute the final result after all elements have been accumulated.
@@ -410,8 +410,8 @@ func FlatMap[E, F any](s Stream[E], fm FlatMapper[E, F]) Stream[F] {
 	}
 }
 
-// GroupByKey returns a stream that groups key-pair elements by key.
-// The resulting stream contains key-pair elements where the key is the same, and the value is a slice of all the values that had that key.
+// GroupByKey returns a stream that groups key-value pairs by key.
+// The resulting stream contains key-value pairs where the key is the same, and the value is a slice of all the values that had that key.
 // The order of the elements is not guaranteed.
 //
 // Example usage:
@@ -440,8 +440,8 @@ func GroupByKey[K comparable, V any](s Stream[pair.Pair[K, V]]) Stream[pair.Pair
 	}
 }
 
-// ReduceByKey returns a stream that reduces key-pair elements by key.
-// The resulting stream contains key-pair elements where the key is the same, and the value is the result of reducing all the values that had that key.
+// ReduceByKey returns a stream that reduces key-value pairs by key.
+// The resulting stream contains key-value pairs where the key is the same, and the value is the result of reducing all the values that had that key.
 // The order of the elements is not guaranteed.
 //
 // Example usage:
@@ -453,7 +453,7 @@ func GroupByKey[K comparable, V any](s Stream[pair.Pair[K, V]]) Stream[pair.Pair
 //	), func(a, b int) int {
 //	    return a + b
 //	})
-//	out := stream.DebugString(s) // "<(foo, 4), (bar, 2)>"
+//	out := stream.DebugString(s) // "<("foo", 4), ("bar", 2)>"
 func ReduceByKey[K comparable, V any](s Stream[pair.Pair[K, V]], reduce Reducer[V]) Stream[pair.Pair[K, V]] {
 	return func(yield Consumer[pair.Pair[K, V]]) bool {
 		// Group reduced elements by key into map.
@@ -469,6 +469,47 @@ func ReduceByKey[K comparable, V any](s Stream[pair.Pair[K, V]], reduce Reducer[
 		// Yield map entries as pairs.
 		for k, v := range m {
 			if !yield(pair.Of(k, v)) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+// AggregateByKey returns a stream that aggregates key-value pairs by key.
+// The resulting stream contains key-value pairs where the key is the same, and the value is the result of aggregating all the values that had that key.
+// This is a generalization of ReduceByKey that allows an intermediate accumulated value to be of a different type than both the input and the final result.
+// The accumulated value is initialized with the given identity value, and then each element from the input stream is combined with the accumulated value using the given `accumulate` function.
+// Once all elements have been accumulated, the accumulated value is transformed into the final result using the given `finish` function.
+// The order of the elements is not guaranteed.
+//
+// Example usage:
+//
+//	s := stream.AggregateByKey(stream.Of(
+//	    pair.Of("foo", 1),
+//	    pair.Of("bar", 2),
+//	    pair.Of("foo", 3),
+//	), 0, func(a int, b int) int {
+//	    return a + b
+//	}, func(a int) string {
+//	    return fmt.Sprintf("%d", a)
+//	})
+//	out := stream.DebugString(s) // "<("foo", "4"), ("bar", "2")>"
+func AggregateByKey[K comparable, V, A, F any](s Stream[pair.Pair[K, V]], identity A, accumulate Accumulator[A, V], finish Finisher[A, F]) Stream[pair.Pair[K, F]] {
+	return func(yield Consumer[pair.Pair[K, F]]) bool {
+		// Group accumulated elements by key into map.
+		m := make(map[K]A)
+		s(func(p pair.Pair[K, V]) bool {
+			if v, ok := m[p.First()]; ok {
+				m[p.First()] = accumulate(v, p.Second())
+			} else {
+				m[p.First()] = accumulate(identity, p.Second())
+			}
+			return true
+		})
+		// Yield map entries as pairs.
+		for k, v := range m {
+			if !yield(pair.Of(k, finish(v))) {
 				return false
 			}
 		}
@@ -800,7 +841,7 @@ func Reduce[E any](s Stream[E], reduce Reducer[E]) (result E, ok bool) {
 //	      return a * 2     // Finish with multiplication by 2.
 //	  },
 //	) // (1+2+3) * 2 = 12
-func Aggregate[E, A, F any](s Stream[E], identity A, accumulate Accumulator[E, A], finish Finisher[A, F]) F {
+func Aggregate[E, A, F any](s Stream[E], identity A, accumulate Accumulator[A, E], finish Finisher[A, F]) F {
 	a := identity
 	s(func(e E) bool {
 		a = accumulate(a, e)
