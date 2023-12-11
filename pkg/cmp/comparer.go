@@ -2,6 +2,7 @@ package cmp
 
 import (
 	stdcmp "cmp"
+
 	"github.com/jpfourny/papaya/pkg/constraint"
 )
 

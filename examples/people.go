@@ -2,6 +2,7 @@ package examples
 
 import (
 	"fmt"
+
 	"github.com/jpfourny/papaya/pkg/cmp"
 )
 

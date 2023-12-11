@@ -3,12 +3,13 @@ package stream
 import (
 	"context"
 	"fmt"
-	"github.com/jpfourny/papaya/pkg/mapper"
-	"github.com/jpfourny/papaya/pkg/pair"
 	"reflect"
 	"slices"
 	"sync"
 	"testing"
+
+	"github.com/jpfourny/papaya/pkg/mapper"
+	"github.com/jpfourny/papaya/pkg/pair"
 )
 
 func TestEmpty(t *testing.T) {

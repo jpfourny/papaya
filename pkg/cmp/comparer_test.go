@@ -1,9 +1,10 @@
 package cmp
 
 import (
-	"github.com/jpfourny/papaya/pkg/pointer"
 	"strings"
 	"testing"
+
+	"github.com/jpfourny/papaya/pkg/pointer"
 )
 
 type Person struct {

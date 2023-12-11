@@ -2,9 +2,10 @@ package mapper
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/pointer"
-	"strconv"
 )
 
 // Identity returns a function that accepts a value of any type E and returns that value.

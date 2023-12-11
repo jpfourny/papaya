@@ -1,10 +1,11 @@
 package pred
 
 import (
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/constraint"
 	"math"
 	"reflect"
+
+	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/pkg/constraint"
 )
 
 // True returns a function that always returns true.

@@ -2,12 +2,13 @@ package stream
 
 import (
 	"context"
+	"slices"
+	"strings"
+
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/mapper"
 	"github.com/jpfourny/papaya/pkg/pair"
-	"slices"
-	"strings"
 )
 
 // Stream represents a function that produces a sequence of elements of type E and sends them to the given Consumer.

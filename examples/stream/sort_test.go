@@ -2,10 +2,11 @@ package stream
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/jpfourny/papaya/examples"
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/stream"
-	"testing"
 )
 
 func TestSortPersonComparing(t *testing.T) {

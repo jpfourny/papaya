@@ -1,9 +1,10 @@
 package pred
 
 import (
+	"testing"
+
 	"github.com/jpfourny/papaya/pkg/pair"
 	"github.com/jpfourny/papaya/pkg/pointer"
-	"testing"
 )
 
 func TestTrue(t *testing.T) {

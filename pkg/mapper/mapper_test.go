@@ -1,9 +1,10 @@
 package mapper
 
 import (
+	"testing"
+
 	"github.com/jpfourny/papaya/pkg/pointer"
 	"github.com/jpfourny/papaya/pkg/pred"
-	"testing"
 )
 
 func TestConstant(t *testing.T) {
