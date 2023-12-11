@@ -517,6 +517,23 @@ func AggregateByKey[K comparable, V, A, F any](s Stream[pair.Pair[K, V]], identi
 	}
 }
 
+// CountByKey returns a stream that counts the number of elements for each key.
+// The resulting stream contains key-value pairs where the key is the same, and the value is the number of elements that had that key.
+// The order of the elements is not guaranteed.
+//
+// Example usage:
+//
+//	s := stream.CountByKey(stream.Of("foo", "bar", "foo"))
+//	out := stream.DebugString(s) // "<("foo", 2), ("bar", 1)>"
+func CountByKey[K comparable, V any](s Stream[pair.Pair[K, V]]) Stream[pair.Pair[K, int64]] {
+	return AggregateByKey(
+		s,
+		int64(0),
+		func(a int64, _ V) int64 { return a + 1 },
+		func(a int64) int64 { return a },
+	)
+}
+
 // Limit returns a stream that is limited to the first `n` elements.
 // If the input stream has fewer than `n` elements, the returned stream will have the same number of elements.
 //

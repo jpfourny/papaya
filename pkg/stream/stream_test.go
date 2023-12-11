@@ -784,6 +784,57 @@ func TestAggregateByKey(t *testing.T) {
 	})
 }
 
+func TestCountByKey(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := CountByKey(Empty[pair.Pair[int, string]]())
+		got := CollectMap(s)
+		if len(got) != 0 {
+			t.Fatalf("got %#v, want %#v", got, map[int]int{})
+		}
+		if got[0] != 0 {
+			t.Fatalf("got %#v, want %#v", got[0], 0)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := CountByKey(Of(
+			pair.Of(1, "one"),
+			pair.Of(2, "two"),
+			pair.Of(1, "uno"),
+			pair.Of(3, "three"),
+			pair.Of(2, "dos"),
+		))
+		got := CollectMap(s)
+		want := map[int]int64{
+			1: 2,
+			2: 2,
+			3: 1,
+		}
+		if len(got) != len(want) {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		for k, v := range want {
+			if got[k] != v {
+				t.Fatalf("got %#v, want %#v", got[k], want[k])
+			}
+		}
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := CountByKey(Of(
+			pair.Of(1, "one"),
+			pair.Of(2, "two"),
+			pair.Of(1, "uno"),
+			pair.Of(3, "three"),
+			pair.Of(2, "dos"),
+		))
+		got := CollectMap(Limit(s, 1)) // Stops stream after 1 elements.
+		if len(got) != 1 {
+			t.Fatal("expected 1 element; got", len(got)) // Actual value is unpredictable due to map iteration order.
+		}
+	})
+}
+
 func TestCollectSlice(t *testing.T) {
 	got := CollectSlice(Of(1, 2, 3))
 	want := []int{1, 2, 3}
