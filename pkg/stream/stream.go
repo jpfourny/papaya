@@ -8,6 +8,7 @@ import (
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/mapper"
+	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
 )
 
@@ -819,7 +820,7 @@ func Count[E any](s Stream[E]) (count int64) {
 }
 
 // Reduce combines the elements of the stream into a single value using the given reducer function.
-// If the stream is empty, ok will be returned as false; otherwise, ok will be true.
+// If the stream is empty, then an empty optional.Optional is returned.
 // The stream is fully consumed.
 //
 // Example usage:
@@ -827,13 +828,13 @@ func Count[E any](s Stream[E]) (count int64) {
 //	out, ok := stream.Reduce(stream.Of(1, 2, 3), func(a, e int) int {
 //	    return a + e
 //	}) // 6, true
-func Reduce[E any](s Stream[E], reduce Reducer[E]) (result E, ok bool) {
+func Reduce[E any](s Stream[E], reduce Reducer[E]) (result optional.Optional[E]) {
+	result = optional.Empty[E]()
 	s(func(e E) bool {
-		if ok {
-			result = reduce(result, e)
+		if result.IsPresent() {
+			result = optional.Of(reduce(result.Get(), e))
 		} else {
-			ok = true
-			result = e
+			result = optional.Of(e)
 		}
 		return true
 	})
@@ -1138,19 +1139,21 @@ func StringJoin(s Stream[string], sep string) string {
 //
 // Example usage:
 //
-//	min, ok := stream.Min(stream.Of(3, 1, 2)) // 1, true
-func Min[E constraint.Ordered](s Stream[E]) (min E, ok bool) {
+//	min := stream.Min(stream.Of(3, 1, 2)) // Some(1)
+//	min = stream.Min(stream.Empty[int]()) // None()
+func Min[E constraint.Ordered](s Stream[E]) (min optional.Optional[E]) {
 	return MinBy(s, cmp.Natural[E]())
 }
 
-// MinBy returns the minimum element in the stream, or the zero value of the type parameter E if the stream is empty.
+// MinBy returns the minimum element in the stream.
 // Uses the given cmp.Comparer to compare elements.
-// If the stream is empty, the 'ok' return value is false; otherwise it is true.
+// If the stream is empty, then an empty optional.Optional is returned.
 //
 // Example usage:
 //
-//	min, ok := stream.MinBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // 1, true
-func MinBy[E any](s Stream[E], cmp cmp.Comparer[E]) (min E, ok bool) {
+//	min := stream.MinBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // Some(1)
+//	min = stream.MinBy(stream.Empty[int](), cmp.Natural[int]()) // None()
+func MinBy[E any](s Stream[E], cmp cmp.Comparer[E]) (min optional.Optional[E]) {
 	return Reduce(
 		s,
 		func(a, e E) E {
@@ -1162,25 +1165,27 @@ func MinBy[E any](s Stream[E], cmp cmp.Comparer[E]) (min E, ok bool) {
 	)
 }
 
-// Max returns the maximum element in the stream, or the zero value of the type parameter E if the stream is empty.
+// Max returns the maximum element in the stream.
 // Uses the natural ordering of type E to compare elements.
-// If the stream is empty, the 'ok' return value is false; otherwise it is true.
+// If the stream is empty, then an empty optional.Optional is returned.
 //
 // Example usage:
 //
-//	max, ok := stream.Max(stream.Of(3, 1, 2)) // 3, true
-func Max[E constraint.Ordered](s Stream[E]) (max E, ok bool) {
+//	max := stream.Max(stream.Of(3, 1, 2)) // Some(3)
+//	max = stream.Max(stream.Empty[int]()) // None()
+func Max[E constraint.Ordered](s Stream[E]) (max optional.Optional[E]) {
 	return MaxBy(s, cmp.Natural[E]())
 }
 
 // MaxBy returns the maximum element in the stream, or the zero value of the type parameter E if the stream is empty.
 // Uses the given cmp.Comparer to compare elements.
-// If the stream is empty, the 'ok' return value is false; otherwise it is true.
+// If the stream is empty, then an empty optional.Optional is returned.
 //
 // Example usage:
 //
-//	max, ok := stream.MaxBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // 3, true
-func MaxBy[E any](s Stream[E], cmp cmp.Comparer[E]) (max E, ok bool) {
+//	max := stream.MaxBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // Some(3)
+//	max = stream.MaxBy(stream.Empty[int](), cmp.Natural[int]()) // None()
+func MaxBy[E any](s Stream[E], cmp cmp.Comparer[E]) (max optional.Optional[E]) {
 	return Reduce(
 		s,
 		func(a, e E) E {

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/jpfourny/papaya/pkg/mapper"
+	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
 )
 
@@ -1008,28 +1009,22 @@ func TestCount(t *testing.T) {
 
 func TestReduce(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		got, ok := Reduce(Empty[int](), func(a, b int) int {
+		got := Reduce(Empty[int](), func(a, b int) int {
 			return a + b
 		})
-		if ok {
-			t.Errorf("expected ok=false, got %#v", ok)
-		}
-		want := 0
+		want := optional.Empty[int]()
 		if got != want {
-			t.Errorf("got %#v, want %#v", got, want)
+			t.Errorf("got %v, want %v", got, want)
 		}
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		got, ok := Reduce(Of(1, 2, 3), func(a, b int) int {
+		got := Reduce(Of(1, 2, 3), func(a, b int) int {
 			return a + b
 		})
-		if !ok {
-			t.Errorf("expected ok=true, got %#v", ok)
-		}
-		want := 6
+		want := optional.Of(6)
 		if got != want {
-			t.Errorf("got %#v, want %#v", got, want)
+			t.Errorf("got %v, want %v", got, want)
 		}
 	})
 }
@@ -1154,36 +1149,36 @@ func TestAverage(t *testing.T) {
 
 func TestMin(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		got, ok := Min(Empty[int]())
-		want := 0
-		if got != want || ok {
-			t.Errorf("got %#v, want %#v", got, want)
+		got := Min(Empty[int]())
+		want := optional.Empty[int]()
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
 		}
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		got, ok := Min(Of(3, 1, 2))
-		want := 1
-		if got != want || !ok {
-			t.Errorf("got %#v, want %#v", got, want)
+		got := Min(Of(3, 1, 2))
+		want := optional.Of(1)
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
 		}
 	})
 }
 
 func TestMax(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		got, ok := Max(Empty[int]())
-		want := 0
-		if got != want || ok {
-			t.Errorf("got %#v, want %#v", got, want)
+		got := Max(Empty[int]())
+		want := optional.Empty[int]()
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
 		}
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		got, ok := Max(Of(1, 3, 2))
-		want := 3
-		if got != want || !ok {
-			t.Errorf("got %#v, want %#v", got, want)
+		got := Max(Of(1, 3, 2))
+		want := optional.Of(3)
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
 		}
 	})
 }
