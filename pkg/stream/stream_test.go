@@ -11,6 +11,7 @@ import (
 	"github.com/jpfourny/papaya/pkg/mapper"
 	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/pkg/pred"
 )
 
 func TestEmpty(t *testing.T) {
@@ -329,71 +330,25 @@ func TestFromChannelCtx(t *testing.T) {
 	})
 }
 
-func TestRangeInteger(t *testing.T) {
+func TestRange(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		s := RangeInteger(0, 0)
+		s := Range(0, pred.LessThan(0), mapper.Increment(1))
 		got := CollectSlice(s)
 		var want []int
 		assertElementsMatch(t, got, want)
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		s := RangeInteger(1, 4)
+		s := Range(1, pred.LessThanOrEqual(5), mapper.Increment(2))
 		got := CollectSlice(s)
-		want := []int{1, 2, 3}
+		want := []int{1, 3, 5}
 		assertElementsMatch(t, got, want)
 	})
 
 	t.Run("limited", func(t *testing.T) {
-		s := RangeInteger(1, 4)
+		s := Range(1, pred.LessThanOrEqual(5), mapper.Increment(2))
 		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
-		want := []int{1, 2}
-		assertElementsMatch(t, got, want)
-	})
-}
-
-func TestRangeIntegerStep(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		s := RangeIntegerStep(0, 0, 1)
-		got := CollectSlice(s)
-		var want []int
-		assertElementsMatch(t, got, want)
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		s := RangeIntegerStep(1, 4, 2)
-		got := CollectSlice(s)
 		want := []int{1, 3}
-		assertElementsMatch(t, got, want)
-	})
-
-	t.Run("limited", func(t *testing.T) {
-		s := RangeIntegerStep(1, 4, 2)
-		got := CollectSlice(Limit(s, 1)) // Stops stream after 1 element.
-		want := []int{1}
-		assertElementsMatch(t, got, want)
-	})
-}
-
-func TestRangeFloatStep(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		s := RangeFloatStep(0.0, 0.0, 1.0)
-		got := CollectSlice(s)
-		var want []float64
-		assertElementsMatch(t, got, want)
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		s := RangeFloatStep(1.0, 4.0, 2.0)
-		got := CollectSlice(s)
-		want := []float64{1.0, 3.0}
-		assertElementsMatch(t, got, want)
-	})
-
-	t.Run("limited", func(t *testing.T) {
-		s := RangeFloatStep(1.0, 4.0, 2.0)
-		got := CollectSlice(Limit(s, 1)) // Stops stream after 1 element.
-		want := []float64{1.0}
 		assertElementsMatch(t, got, want)
 	})
 }

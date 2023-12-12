@@ -251,50 +251,16 @@ func FromIterator[E any](it Iterator[E]) Stream[E] {
 	}
 }
 
-// RangeInteger returns a stream of integers in the range [start, end).
+// Range returns a stream that produces elements over a range beginning at `start`, advanced by the `next` function, and ending when `cond` predicate returns false.
 //
 // Example usage:
 //
-//	s := stream.RangeInteger(1, 4)
-//	out := stream.DebugString(s) // "<1, 2, 3>"
-func RangeInteger[E constraint.Integer](start, end E) Stream[E] {
-	return func(yield Consumer[E]) bool {
-		for i := start; i < end; i++ {
-			if !yield(i) {
-				return false
-			}
-		}
-		return true
-	}
-}
-
-// RangeIntegerStep returns a stream of integers in the range [start, end) with the given step size.
-//
-// Example usage:
-//
-//	s := stream.RangeIntegerStep(1, 7, 2)
+//	s := stream.Range(1, pred.LessThanOrEqual(5), mapper.Increment(2))
 //	out := stream.DebugString(s) // "<1, 3, 5>"
-func RangeIntegerStep[E constraint.Integer](start, end, step E) Stream[E] {
+func Range[E any](start E, cond Predicate[E], next Mapper[E, E]) Stream[E] {
 	return func(yield Consumer[E]) bool {
-		for i := start; i < end; i += step {
-			if !yield(i) {
-				return false
-			}
-		}
-		return true
-	}
-}
-
-// RangeFloatStep returns a stream of floats in the range [start, end) with the given step size.
-//
-// Example usage:
-//
-//	s := stream.RangeFloatStep(1.0, 3.0, 0.5)
-//	out := stream.DebugString(s) // "<1.0, 1.5, 2.0, 2.5>"
-func RangeFloatStep[E constraint.Float](start, end, step E) Stream[E] {
-	return func(yield Consumer[E]) bool {
-		for f := start; f < end; f += step {
-			if !yield(f) {
+		for e := start; cond(e); e = next(e) {
+			if !yield(e) {
 				return false
 			}
 		}
