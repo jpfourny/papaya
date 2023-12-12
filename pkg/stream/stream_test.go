@@ -971,6 +971,23 @@ func TestCount(t *testing.T) {
 	})
 }
 
+func TestIsEmpty(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		got := IsEmpty(Empty[int]())
+		if got != true {
+			t.Errorf("got %#v, want %#v", got, true)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		got := IsEmpty(Of(1, 2, 3))
+		if got != false {
+			t.Errorf("got %#v, want %#v", got, false)
+		}
+	})
+
+}
+
 func TestReduce(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		got := Reduce(Empty[int](), func(a, b int) int {
@@ -1181,6 +1198,86 @@ func TestLast(t *testing.T) {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
 	})
+}
+
+func TestContains(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		got := Contains(Empty[int](), 1)
+		if got != false {
+			t.Errorf("got %#v, want %#v", got, false)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		got := Contains(Of(1, 2, 3), 2)
+		if got != true {
+			t.Errorf("got %#v, want %#v", got, true)
+		}
+	})
+}
+
+func TestContainsAnyOf(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		got := ContainsAny(Empty[int](), 1, 2)
+		if got != false {
+			t.Errorf("got %#v, want %#v", got, false)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		got := ContainsAny(Of(1, 2, 3), 2, 4)
+		if got != true {
+			t.Errorf("got %#v, want %#v", got, true)
+		}
+
+		got = ContainsAny(Of(1, 2, 3), 5)
+		if got != false {
+			t.Errorf("got %#v, want %#v", got, true)
+		}
+	})
+}
+
+func TestContainsNone(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		got := ContainsNone(Empty[int](), 1, 2)
+		if got != true {
+			t.Errorf("got %#v, want %#v", got, true)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		got := ContainsNone(Of(1, 2, 3), 2, 4)
+		if got != false {
+			t.Errorf("got %#v, want %#v", got, false)
+		}
+
+		got = ContainsNone(Of(1, 2, 3), 5)
+		if got != true {
+			t.Errorf("got %#v, want %#v", got, true)
+		}
+	})
+}
+
+func TestContainsAll(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		got := ContainsAll(Empty[int](), 1, 2)
+		if got != false {
+			t.Errorf("got %#v, want %#v", got, false)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		got := ContainsAll(Of(1, 2, 3), 2, 1)
+		if got != true {
+			t.Errorf("got %#v, want %#v", got, true)
+		}
+
+		got = ContainsAll(Of(1, 2, 3), 3, 5)
+		if got != false {
+			t.Errorf("got %#v, want %#v", got, false)
+		}
+	})
+
 }
 
 func TestAnyMatch(t *testing.T) {
