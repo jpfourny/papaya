@@ -356,6 +356,31 @@ func Intersection[E comparable](ss ...Stream[E]) Stream[E] {
 	}
 }
 
+// Difference returns a stream that contains elements that are in the first stream but not in the second stream.
+// The order of the elements is not guaranteed.
+//
+// Example usage:
+//
+//	s := stream.Difference(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6))
+//	out := stream.DebugString(s) // "<1, 2, 3>"
+func Difference[E comparable](s1, s2 Stream[E]) Stream[E] {
+	return func(yield Consumer[E]) bool {
+		// Index elements of the second stream into a set.
+		seen := make(map[E]struct{})
+		s2(func(e E) bool {
+			seen[e] = struct{}{}
+			return true
+		})
+		// Yield elements of the first stream that are not in the set.
+		return s1(func(e E) bool {
+			if _, ok := seen[e]; !ok {
+				return yield(e)
+			}
+			return true
+		})
+	}
+}
+
 // Peek decorates the given stream to invoke the given function for each element passing through it.
 // This is useful for debugging or logging elements as they pass through the stream.
 //

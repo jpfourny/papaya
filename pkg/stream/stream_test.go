@@ -458,6 +458,15 @@ func TestIntersection(t *testing.T) {
 	})
 }
 
+func TestDifference(t *testing.T) {
+	t.Run("two-streams", func(t *testing.T) {
+		s := Difference(Of(1, 2, 3), Of(2, 3, 4))
+		got := CollectSlice(s)
+		want := []int{1}
+		assertElementsMatch(t, got, want)
+	})
+}
+
 func TestSortAsc(t *testing.T) {
 	s := SortAsc(Of(3, 1, 2))
 	got := CollectSlice(s)
