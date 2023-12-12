@@ -375,7 +375,11 @@ func GreaterThanOrEqualBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
 // Note: this function is symmetric, but less meaningful for values near or smaller than epsilon.
 func RoughlyEqual[E constraint.Float](want, epsilon E) func(E) bool {
 	return func(got E) bool {
-		return roughlyEqual(float64(got), float64(want), float64(epsilon))
+		if got == want { // shortcut, handles infinities
+			return true
+		} else { // use absolute error
+			return math.Abs(float64(got-want)) < float64(epsilon)
+		}
 	}
 }
 
@@ -384,18 +388,6 @@ func RoughlyEqual[E constraint.Float](want, epsilon E) func(E) bool {
 // Note: this function is symmetric, but less meaningful for values near or smaller than epsilon.
 func NotRoughlyEqual[E constraint.Float](want, epsilon E) func(E) bool {
 	return Not(RoughlyEqual(want, epsilon))
-}
-
-// roughlyEqual returns true if the provided values are roughly equal relative to the provided epsilon.
-//
-// Note: this function is symmetric, but less meaningful for values near or smaller than epsilon.
-func roughlyEqual(a, b, epsilon float64) bool {
-	if a == b {
-		// shortcut, handles infinities
-		return true
-	} else { // use absolute error
-		return math.Abs(a-b) < epsilon
-	}
 }
 
 // Nil returns a function that returns true if the provided pointer is nil.
