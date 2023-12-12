@@ -856,7 +856,7 @@ func Count[E any](s Stream[E]) (count int64) {
 func Reduce[E any](s Stream[E], reduce Reducer[E]) (result optional.Optional[E]) {
 	result = optional.Empty[E]()
 	s(func(e E) bool {
-		if result.IsPresent() {
+		if result.Present() {
 			result = optional.Of(reduce(result.Get(), e))
 		} else {
 			result = optional.Of(e)

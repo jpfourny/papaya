@@ -7,8 +7,8 @@ import "fmt"
 type Optional[V any] interface {
 	fmt.Stringer
 
-	// IsPresent returns true if the Optional contains a value, false otherwise.
-	IsPresent() bool
+	// Present returns true if the Optional contains a value, false otherwise.
+	Present() bool
 
 	// Get returns the value contained in the Optional, or the zero value of type V if the Optional is empty.
 	Get() V
@@ -27,7 +27,7 @@ type Optional[V any] interface {
 type None[V any] struct {
 }
 
-func (n None[V]) IsPresent() bool {
+func (n None[V]) Present() bool {
 	return false
 }
 
@@ -56,7 +56,7 @@ type Some[V any] struct {
 	Value V
 }
 
-func (s Some[V]) IsPresent() bool {
+func (s Some[V]) Present() bool {
 	return true
 }
 

@@ -8,8 +8,8 @@ import (
 
 func TestOf(t *testing.T) {
 	o := Of(42)
-	if !o.IsPresent() {
-		t.Errorf("expected IsPresent() to be true")
+	if !o.Present() {
+		t.Errorf("expected Present() to be true")
 	}
 	if o.Get() != 42 {
 		t.Errorf("expected Get() to return 42")
@@ -18,23 +18,23 @@ func TestOf(t *testing.T) {
 
 func TestOfNillable(t *testing.T) {
 	o := OfNillable(pointer.Ref(42))
-	if !o.IsPresent() {
-		t.Errorf("expected IsPresent() to be true")
+	if !o.Present() {
+		t.Errorf("expected Present() to be true")
 	}
 	if o.Get() != 42 {
 		t.Errorf("expected Get() to return 42")
 	}
 
 	o = OfNillable(pointer.Nil[int]())
-	if o.IsPresent() {
-		t.Errorf("expected IsPresent() to be false")
+	if o.Present() {
+		t.Errorf("expected Present() to be false")
 	}
 }
 
 func TestEmpty(t *testing.T) {
 	o := Empty[int]()
-	if o.IsPresent() {
-		t.Errorf("expected IsPresent() to be false")
+	if o.Present() {
+		t.Errorf("expected Present() to be false")
 	}
 	if o.Get() != 0 {
 		t.Errorf("expected Get() to return 0")
