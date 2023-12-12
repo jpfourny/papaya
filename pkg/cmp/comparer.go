@@ -33,13 +33,12 @@ func (c Comparer[E]) Reverse() Comparer[E] {
 //		{"John", "Smith"},
 //	}
 //
-//	// Sort by LastName, then by FirstName.
-//	s := stream.SortBy(
-//		stream.FromSlice(people),
-//		Comparing(func(p Person) string { return p.LastName }).
-//			Then(Comparing(func(p Person) string { return p.FirstName })),
-//	)
-//	out := stream.DebugString(s) // <Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}>
+//	// Sort by LastName ascending, then by FirstName descending.
+//	sort.Slice(
+//		people,
+//		cmp.Comparing(func(p Person) string { return p.LastName }).
+//			Then(cmp.Comparing(func(p Person) string { return p.FirstName }).Reverse()),
+//	) // [Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}]
 func (c Comparer[E]) Then(other Comparer[E]) Comparer[E] {
 	return func(a, b E) int {
 		if r := c(a, b); r != 0 {
@@ -54,14 +53,51 @@ type KeyExtractor[E, K any] func(E) K
 
 // Natural returns a Comparer that compares two values of the same type E using the standard library's Compare function for type E.
 // The type parameter E must implement the Ordered constraint.
+//
+// Example:
+//
+//	s := []int{3, 1, 2}
+//	sort.Slice(s, cmp.Natural[int]()) // [1, 2, 3]
 func Natural[E constraint.Ordered]() Comparer[E] {
 	return stdcmp.Compare[E]
 }
 
 // Reverse returns a Comparer that compares two values of the same type E in reverse order using the standard library's Compare function for type E.
 // The type parameter E must implement the Ordered constraint.
+//
+// Example:
+//
+//	s := []int{3, 1, 2}
+//	sort.Slice(s, cmp.Reverse[int]()) // [3, 2, 1]
 func Reverse[E constraint.Ordered]() Comparer[E] {
 	return Natural[E]().Reverse()
+}
+
+// Slice returns a Comparer that compares two slices of type []E by comparing the elements of the slices using the provided Comparer.
+// The first N elements of the slices are compared, where N is the length of the shorter slice.
+// If all N elements are equal, the length of the slices are compared.
+//
+// Example:
+//
+//	s := [][]int{{3, 1, 2}, {1, 2, 3}, {1, 2}, {1, 2, 3, 4}}
+//	sort.Slice(s, cmp.Slice(cmp.Natural[int]())) // [[1, 2], [1, 2, 3], [1, 2, 3, 4], [3, 1, 2]]
+func Slice[E any](cmp Comparer[E]) Comparer[[]E] {
+	return func(a, b []E) int {
+		// Sort by common elements.
+		n := min(len(a), len(b))
+		for i := 0; i < n; i++ {
+			if c := cmp(a[i], b[i]); c != 0 {
+				return c
+			}
+		}
+		// Sort by length.
+		if len(a) < len(b) {
+			return -1
+		} else if len(a) > len(b) {
+			return 1
+		}
+		return 0
+	}
 }
 
 // DerefNilFirst returns a Comparer that compares two values of the same type *E by dereferencing them and comparing the resulting values using the provided Comparer.
@@ -69,6 +105,11 @@ func Reverse[E constraint.Ordered]() Comparer[E] {
 // If the second value is nil, it is considered greater than the first value.
 // If both values are nil, they are considered equal.
 // Otherwise, the provided Comparer is used to compare the dereferenced values.
+//
+// Example:
+//
+//	s := []*int{pointer.Ref(3), nil, pointer.Ref(1), pointer.Ref(2)}
+//	sort.Slice(s, cmp.DerefNilFirst(cmp.Natural[int]())) // [nil, 1, 2, 3]
 func DerefNilFirst[E any](cmp Comparer[E]) Comparer[*E] {
 	return func(a, b *E) int {
 		if a == nil {
@@ -89,6 +130,11 @@ func DerefNilFirst[E any](cmp Comparer[E]) Comparer[*E] {
 // If the second value is nil, it is considered less than the first value.
 // If both values are nil, they are considered equal.
 // Otherwise, the provided Comparer is used to compare the dereferenced values.
+//
+// Example:
+//
+//	s := []*int{pointer.Ref(3), nil, pointer.Ref(1), pointer.Ref(2)}
+//	sort.Slice(s, cmp.DerefNilLast(cmp.Natural[int]())) // [1, 2, 3, nil]
 func DerefNilLast[E any](cmp Comparer[E]) Comparer[*E] {
 	return func(a, b *E) int {
 		if a == nil {
@@ -122,11 +168,10 @@ func DerefNilLast[E any](cmp Comparer[E]) Comparer[*E] {
 //	}
 //
 //	// Sort by LastName.
-//	s := stream.SortBy(
-//		stream.FromSlice(people),
-//		Comparing(func(p Person) string { return p.LastName }),
-//	)
-//	out := stream.DebugString(s) // <Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}>
+//	sort.Slice(
+//		people,
+//		cmp.Comparing(func(p Person) string { return p.LastName }),
+//	) // [Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}]
 func Comparing[E any, K constraint.Ordered](ke KeyExtractor[E, K]) Comparer[E] {
 	return func(a, b E) int {
 		return stdcmp.Compare[K](ke(a), ke(b))
@@ -150,14 +195,10 @@ func Comparing[E any, K constraint.Ordered](ke KeyExtractor[E, K]) Comparer[E] {
 //	}
 //
 //	// Sort by LastName.
-//	s := stream.SortBy(
-//		stream.FromSlice(people),
-//		ComparingBy(
-//			func(p Person) string { return p.LastName }, 
-//			Natural[string](),
-//		),
-//	)
-//	out := stream.DebugString(s) // <Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}>
+//	sort.Slice(
+//		people,
+//		cmp.ComparingBy(func(p Person) string { return p.LastName }, cmp.Natural[string]()),
+//	) // [Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}]
 func ComparingBy[E any, K any](ke KeyExtractor[E, K], cmp Comparer[K]) Comparer[E] {
 	return func(a, b E) int {
 		return cmp(ke(a), ke(b))

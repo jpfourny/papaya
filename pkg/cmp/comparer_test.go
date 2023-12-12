@@ -46,6 +46,39 @@ func TestReverse(t *testing.T) {
 	}
 }
 
+func TestSlice(t *testing.T) {
+	c := Slice(Natural[int]())
+	got := c([]int{3, 1, 2}, []int{1, 2, 3})
+	want := 1
+	if got != want {
+		t.Errorf("Slice(Natural[int]())([]int{3, 1, 2}, []int{1, 2, 3}): expected %d, got %d", want, got)
+	}
+
+	got = c([]int{1, 2, 3}, []int{3, 1, 2})
+	want = -1
+	if got != want {
+		t.Errorf("Slice(Natural[int]())([]int{1, 2, 3}, []int{3, 1, 2}): expected %d, got %d", want, got)
+	}
+
+	got = c([]int{1, 2, 3}, []int{1, 2, 3})
+	want = 0
+	if got != want {
+		t.Errorf("Slice(Natural[int]())([]int{1, 2, 3}, []int{1, 2, 3}): expected %d, got %d", want, got)
+	}
+
+	got = c([]int{1, 2, 3}, []int{1, 2, 3, 4})
+	want = -1
+	if got != want {
+		t.Errorf("Slice(Natural[int]())([]int{1, 2, 3}, []int{1, 2, 3, 4}): expected %d, got %d", want, got)
+	}
+
+	got = c([]int{1, 2, 3, 4}, []int{1, 2, 3})
+	want = 1
+	if got != want {
+		t.Errorf("Slice(Natural[int]())([]int{1, 2, 3, 4}, []int{1, 2, 3}): expected %d, got %d", want, got)
+	}
+}
+
 func TestDerefNilFirst(t *testing.T) {
 	c := DerefNilFirst(Natural[int]())
 	got := c(nil, nil)
