@@ -832,9 +832,12 @@ func IsEmpty[E any](s Stream[E]) (empty bool) {
 //
 // Example usage:
 //
-//	out, ok := stream.Reduce(stream.Of(1, 2, 3), func(a, e int) int {
+//	out := stream.Reduce(stream.Of(1, 2, 3), func(a, e int) int {
 //	    return a + e
-//	}) // 6, true
+//	}) // Some(6)
+//	out = stream.Reduce(stream.Empty[int](), func(a, e int) int {
+//	    return a + e
+//	} // None()
 func Reduce[E any](s Stream[E], reduce Reducer[E]) (result optional.Optional[E]) {
 	result = optional.Empty[E]()
 	s(func(e E) bool {
