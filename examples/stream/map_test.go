@@ -74,3 +74,33 @@ func TestMapPairReverse(t *testing.T) {
 	// ("foo", 1)
 	// ("bar", 2)
 }
+
+func TestMapNumberToBool(t *testing.T) {
+	// Given stream of numbers, map each number to whether it is even.
+	s := stream.Map(
+		stream.Of(0, 2, 0),
+		mapper.NumberToBool[int, bool](),
+	)
+	stream.ForEach(s, func(b bool) {
+		fmt.Println(b)
+	})
+	// Output:
+	// false
+	// true
+	// false
+}
+
+func TestMapBoolNumber(t *testing.T) {
+	// Given stream of bools, map each bool to 0 if false and 1 if true.
+	s := stream.Map(
+		stream.Of(false, true, false),
+		mapper.BoolToNumber[bool, int](),
+	)
+	stream.ForEach(s, func(i int) {
+		fmt.Println(i)
+	})
+	// Output:
+	// 0
+	// 1
+	// 0
+}
