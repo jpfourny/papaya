@@ -30,22 +30,21 @@ func TestOf(t *testing.T) {
 
 type emptyIter struct{}
 
-func (_ emptyIter) Next() (int, bool) {
-	return 0, false
+func (_ emptyIter) Next() optional.Optional[int] {
+	return optional.Empty[int]()
 }
 
 type sliceIter struct {
 	slice []int
-	index int
 }
 
-func (s *sliceIter) Next() (e int, ok bool) {
-	if s.index >= len(s.slice) {
-		return
+func (it *sliceIter) Next() optional.Optional[int] {
+	if len(it.slice) == 0 {
+		return optional.Empty[int]()
 	}
-	e, ok = s.slice[s.index], true
-	s.index++
-	return
+	e := it.slice[0]
+	it.slice = it.slice[1:]
+	return optional.Of(e)
 }
 
 func TestIterator(t *testing.T) {
@@ -1166,17 +1165,17 @@ func TestMax(t *testing.T) {
 
 func TestFirst(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		got, ok := First(Empty[int]())
-		want := 0
-		if got != want || ok {
-			t.Errorf("got %#v, want %#v", got, want)
+		got := First(Empty[int]())
+		want := optional.Empty[int]()
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
 		}
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		got, ok := First(Of(1, 2, 3))
-		want := 1
-		if got != want || !ok {
+		got := First(Of(1, 2, 3))
+		want := optional.Of(1)
+		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
 	})
@@ -1184,17 +1183,17 @@ func TestFirst(t *testing.T) {
 
 func TestLast(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		got, ok := Last(Empty[int]())
-		want := 0
-		if got != want || ok {
+		got := Last(Empty[int]())
+		want := optional.Empty[int]()
+		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		got, ok := Last(Of(1, 2, 3))
-		want := 3
-		if got != want || !ok {
+		got := Last(Of(1, 2, 3))
+		want := optional.Of(3)
+		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
 	})

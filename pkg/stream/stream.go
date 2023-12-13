@@ -30,9 +30,9 @@ type Consumer[E any] func(yield E) (cont bool)
 
 // Iterator represents a type that provides a way to iterate over a sequence of elements.
 // The Next() method is used to obtain the next element in the iteration, if any.
-// If there are no more elements, the method returns false.
+// If there are no more elements, the method returns an empty optional.Optional..
 type Iterator[E any] interface {
-	Next() (e E, ok bool)
+	Next() optional.Optional[E]
 }
 
 // Predicate is a function that accepts a value of type E and returns a boolean.
@@ -243,8 +243,8 @@ func FromChannelCtx[E any](ctx context.Context, ch <-chan E) Stream[E] {
 // FromIterator returns a stream that produces elements by calling the provided Iterator function.
 func FromIterator[E any](it Iterator[E]) Stream[E] {
 	return func(yield Consumer[E]) bool {
-		for e, ok := it.Next(); ok; e, ok = it.Next() {
-			if !yield(e) {
+		for e := it.Next(); e.Present(); e = it.Next() {
+			if !yield(e.Get()) {
 				return false // Consumer saw enough.
 			}
 		}
@@ -1204,33 +1204,31 @@ func MaxBy[E any](s Stream[E], cmp cmp.Comparer[E]) (max optional.Optional[E]) {
 	)
 }
 
-// First returns the first element in the stream, or the zero value of the type parameter E if the stream is empty.
-// If the stream is empty, the second return value is false; otherwise it is true.
+// First returns the first element in the stream; an empty optional.Optional, if the stream is empty.
 //
 // Example usage:
 //
-//	out, ok := stream.First(stream.Of(1, 2, 3)) // 1, true
-//	out, ok = stream.First(stream.Empty[int]()) // 0, false
-func First[E any](s Stream[E]) (first E, ok bool) {
+//	out := stream.First(stream.Of(1, 2, 3)) // Some(1)
+//	out = stream.First(stream.Empty[int]()) // None()
+func First[E any](s Stream[E]) (first optional.Optional[E]) {
+	first = optional.Empty[E]()
 	s(func(e E) bool {
-		first = e
-		ok = true
+		first = optional.Of(e)
 		return false
 	})
 	return
 }
 
-// Last returns the last element in the stream, or the zero value of the type parameter E if the stream is empty.
-// If the stream is empty, the second return value is false; otherwise it is true.
+// Last returns the last element in the stream; an empty optional.Optional, if the stream is empty.
 //
 // Example usage:
 //
-//	out, ok := stream.Last(stream.Of(1, 2, 3)) // 3, true
-//	out, ok = stream.Last(stream.Empty[int]()) // 0, false
-func Last[E any](s Stream[E]) (last E, ok bool) {
+//	out := stream.Last(stream.Of(1, 2, 3)) // Some(3)
+//	out = stream.Last(stream.Empty[int]()) // None()
+func Last[E any](s Stream[E]) (last optional.Optional[E]) {
+	last = optional.Empty[E]()
 	s(func(e E) bool {
-		last = e
-		ok = true
+		last = optional.Of(e)
 		return true
 	})
 	return
