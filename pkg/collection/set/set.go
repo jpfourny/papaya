@@ -139,12 +139,7 @@ func (s Set[E]) ToSlice() []E {
 }
 
 // String returns a string representation of the Set, formatted as "[<elem1>, <elem2>, ...]".
+// The elements are sorted in ascending order after being converted to strings using fmt.Sprint.
 func (s Set[E]) String() string {
-	return "[" + stream.StringJoin(
-		stream.Map(
-			s.Stream(),
-			mapper.Sprint[E](),
-		),
-		", ",
-	) + "]"
+	return "[" + stream.StringJoin(stream.SortAsc(stream.Map(s.Stream(), mapper.Sprint[E]())), ", ") + "]"
 }
