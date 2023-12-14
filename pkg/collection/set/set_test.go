@@ -95,6 +95,93 @@ func TestSet_RemoveAll(t *testing.T) {
 	}
 }
 
+func TestSet_Contains(t *testing.T) {
+	s := Of(1, 2, 3)
+	if !s.Contains(1) {
+		t.Errorf("expected Contains(1) to be true")
+	}
+	if !s.Contains(2) {
+		t.Errorf("expected Contains(2) to be true")
+	}
+	if !s.Contains(3) {
+		t.Errorf("expected Contains(3) to be true")
+	}
+	if s.Contains(4) {
+		t.Errorf("expected Contains(4) to be false")
+	}
+}
+
+func TestSet_ContainsAll(t *testing.T) {
+	s := Of(1, 2, 3)
+	if !s.ContainsAll(1, 2) {
+		t.Errorf("expected ContainsAll(1, 2) to be true")
+	}
+	if !s.ContainsAll(1, 2, 3) {
+		t.Errorf("expected ContainsAll(1, 2, 3) to be true")
+	}
+	if s.ContainsAll(1, 2, 3, 4) {
+		t.Errorf("expected ContainsAll(1, 2, 3, 4) to be false")
+	}
+}
+
+func TestSet_ContainsAny(t *testing.T) {
+	s := Of(1, 2, 3)
+	if !s.ContainsAny(1, 2) {
+		t.Errorf("expected ContainsAny(1, 2) to be true")
+	}
+	if !s.ContainsAny(1, 2, 3) {
+		t.Errorf("expected ContainsAny(1, 2, 3) to be true")
+	}
+	if !s.ContainsAny(1, 2, 3, 4) {
+		t.Errorf("expected ContainsAny(1, 2, 3, 4) to be true")
+	}
+	if s.ContainsAny(4, 5) {
+		t.Errorf("expected ContainsAny(4, 5) to be false")
+	}
+}
+
+func TestSet_ContainsNone(t *testing.T) {
+	s := Of(1, 2, 3)
+	if !s.ContainsNone(4, 5) {
+		t.Errorf("expected ContainsNone(4, 5) to be true")
+	}
+	if s.ContainsNone(1, 2) {
+		t.Errorf("expected ContainsNone(1, 2) to be false")
+	}
+	if s.ContainsNone(1, 2, 3) {
+		t.Errorf("expected ContainsNone(1, 2, 3) to be false")
+	}
+	if s.ContainsNone(1, 2, 3, 4) {
+		t.Errorf("expected ContainsNone(1, 2, 3, 4) to be false")
+	}
+}
+
+func TestSet_Equal(t *testing.T) {
+	s := Of(1, 2, 3)
+	other := Of(3, 1, 2)
+	if !s.Equal(other) {
+		t.Errorf("expected Equal() to be true")
+	}
+
+	s = Of(1, 2, 3)
+	other = Of(4, 5, 6)
+	if s.Equal(other) {
+		t.Errorf("expected Equal() to be true")
+	}
+
+	s = Of(1, 2, 3)
+	other = Of(1, 2)
+	if s.Equal(other) {
+		t.Errorf("expected Equal() to be false")
+	}
+
+	s = Of(1, 2)
+	other = Of(1, 2, 3)
+	if s.Equal(other) {
+		t.Errorf("expected Equal() to be false")
+	}
+}
+
 func TestSet_Union(t *testing.T) {
 	s := Of(1, 2, 3)
 	other := Of(2, 3, 4)
