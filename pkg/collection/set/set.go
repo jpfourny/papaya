@@ -104,6 +104,31 @@ func (s Set[E]) Contains(e E) bool {
 	return ok
 }
 
+// ContainsAll returns true if the Set contains all of the provided elements; false otherwise.
+func (s Set[E]) ContainsAll(elems ...E) bool {
+	for _, e := range elems {
+		if !s.Contains(e) {
+			return false
+		}
+	}
+	return true
+}
+
+// ContainsAny returns true if the Set contains any of the provided elements; false otherwise.
+func (s Set[E]) ContainsAny(elems ...E) bool {
+	for _, e := range elems {
+		if s.Contains(e) {
+			return true
+		}
+	}
+	return false
+}
+
+// ContainsNone returns true if the Set contains none of the provided elements; false otherwise.
+func (s Set[E]) ContainsNone(elems ...E) bool {
+	return !s.ContainsAny(elems...)
+}
+
 // Size returns the number of elements in the Set.
 func (s Set[E]) Size() int {
 	return len(s)
@@ -128,6 +153,20 @@ func (s Set[E]) Clone() Set[E] {
 	return result
 }
 
+// Equal returns true if the Set is equal to the `other` Set; false otherwise.
+// Two Sets are equal if they contain the same elements.
+func (s Set[E]) Equal(other Set[E]) bool {
+	if s.Size() != other.Size() {
+		return false
+	}
+	for e := range s {
+		if !other.Contains(e) {
+			return false
+		}
+	}
+	return true
+}
+
 // Stream returns a stream of the elements in the Set.
 func (s Set[E]) Stream() stream.Stream[E] {
 	return stream.FromMapKeys(s)
@@ -141,5 +180,12 @@ func (s Set[E]) ToSlice() []E {
 // String returns a string representation of the Set, formatted as "[<elem1>, <elem2>, ...]".
 // The elements are sorted in ascending order after being converted to strings using fmt.Sprint.
 func (s Set[E]) String() string {
-	return "[" + stream.StringJoin(stream.SortAsc(stream.Map(s.Stream(), mapper.Sprint[E]())), ", ") + "]"
+	return "[" + stream.StringJoin(
+		stream.SortAsc(
+			stream.Map(
+				s.Stream(),
+				mapper.Sprint[E](),
+			),
+		), ", ",
+	) + "]"
 }
