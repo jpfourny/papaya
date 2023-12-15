@@ -5,36 +5,19 @@ import (
 
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/pkg/optional"
 )
-
-// Peek decorates the given stream to invoke the given function for each element passing through it.
-// This is useful for debugging or logging elements as they pass through the stream.
-//
-// Example usage:
-//
-//	s := stream.Peek(stream.Of(1, 2, 3), func(e int) {
-//	    fmt.Println(e)
-//	})
-//	stream.Count(s) // Force the stream to materialize.
-//
-// Output:
-//
-//	1
-//	2
-//	3
-func Peek[E any](s Stream[E], peek func(e E)) Stream[E] {
-	return func(yield Consumer[E]) bool {
-		return s(func(e E) bool {
-			peek(e)
-			return yield(e)
-		})
-	}
-}
 
 // Mapper represents a function that transforms an input of type E to an output of type F.
 // It is used in the Map operation.
 // It must be idempotent, free of side effects, and thread-safe.
 type Mapper[E, F any] func(from E) (to F)
+
+// OptionalMapper represents a function that transforms an input of type E to an optional output of type F.
+// If the input cannot be transformed, the function must return an empty optional.
+// It is used in the MapOrDiscard operation.
+// It must be idempotent, free of side effects, and thread-safe.
+type OptionalMapper[E, F any] func(from E) optional.Optional[F]
 
 // Map applies a Mapper function to each element in a stream and returns a new stream containing the mapped elements.
 //
@@ -46,6 +29,25 @@ func Map[E, F any](s Stream[E], m Mapper[E, F]) Stream[F] {
 	return func(yield Consumer[F]) bool {
 		return s(func(e E) bool {
 			return yield(m(e))
+		})
+	}
+}
+
+// MapOrDiscard applies an OptionalMapper function to each element in a stream and returns a new stream containing the mapped elements.
+// If the OptionalMapper returns an empty optional, the element is discarded from the stream.
+//
+// Example usage:
+//
+//	s := stream.MapOrDiscard(stream.Of("1", "foo", "3"), mapper.TryParseInt[int](10, 64))
+//	out := stream.DebugString(s) // "<1, 3>"
+func MapOrDiscard[E, F any](s Stream[E], m OptionalMapper[E, F]) Stream[F] {
+	return func(yield Consumer[F]) bool {
+		return s(func(e E) (ok bool) {
+			ok = true
+			m(e).IfPresent(func(f F) {
+				ok = yield(f)
+			})
+			return
 		})
 	}
 }

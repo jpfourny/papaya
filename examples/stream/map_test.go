@@ -24,6 +24,34 @@ func TestMapIntToString(t *testing.T) {
 	// 3
 }
 
+func TestMapStringToInt(t *testing.T) {
+	// Map stream of string to int; default to 0 if parse fails.
+	s := stream.Map(
+		stream.Of("1", "2", "3", "foo"),
+		mapper.ParseIntOr[string, int](10, 64, -1),
+	)
+	stream.ForEach(s, func(i int) {
+		fmt.Println(i)
+	})
+	// Output:
+	// 1
+	// 2
+	// 3
+	// -1
+
+	s = stream.MapOrDiscard(
+		stream.Of("1", "2", "3", "foo"),
+		mapper.TryParseInt[string, int](10, 64),
+	)
+	stream.ForEach(s, func(i int) {
+		fmt.Println(i)
+	})
+	// Output:
+	// 1
+	// 2
+	// 3
+}
+
 func TestMapPairFirst(t *testing.T) {
 	// Given stream of pairs, project the first element of each pair.
 	s := stream.Map(

@@ -16,6 +16,17 @@ func TestForEach(t *testing.T) {
 	assert.ElementsMatch(t, got, want)
 }
 
+func TestPeek(t *testing.T) {
+	var got []int
+	s := Peek(Of(1, 2, 3), func(e int) {
+		got = append(got, e)
+	})
+	Count(s) // Force evaluation so peek is called.
+	want := []int{1, 2, 3}
+	assert.ElementsMatch(t, got, want)
+	assert.ElementsMatch(t, CollectSlice(s), want)
+}
+
 func TestDebugString(t *testing.T) {
 	got := DebugString(Of(1, 2, 3))
 	want := "<1, 2, 3>"

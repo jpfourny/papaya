@@ -42,6 +42,30 @@ func IsEmpty[E any](s Stream[E]) (empty bool) {
 	return
 }
 
+// Peek decorates the given stream to invoke the given function for each element passing through it.
+// This is useful for debugging or logging elements as they pass through the stream.
+//
+// Example usage:
+//
+//	s := stream.Peek(stream.Of(1, 2, 3), func(e int) {
+//	    fmt.Println(e)
+//	})
+//	stream.Count(s) // Force the stream to materialize.
+//
+// Output:
+//
+//	1
+//	2
+//	3
+func Peek[E any](s Stream[E], peek func(e E)) Stream[E] {
+	return func(yield Consumer[E]) bool {
+		return s(func(e E) bool {
+			peek(e)
+			return yield(e)
+		})
+	}
+}
+
 // DebugString returns a string representation of all elements from the stream.
 // The string is formatted like `<e1, e2, e3>` where e1, e2, e3 are the string representations of the elements.
 // Useful for debugging.
