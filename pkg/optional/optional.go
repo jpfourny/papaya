@@ -85,12 +85,12 @@ func Of[V any](value V) Optional[V] {
 	return Some[V]{Value: value}
 }
 
-// OfNillable returns an Optional containing the provided value, or None if the value is nil.
-func OfNillable[V any](value *V) Optional[V] {
-	if value == nil {
-		return None[V]{}
+// Maybe returns an Optional containing the provided value if the provided boolean is true, or an empty Optional otherwise.
+func Maybe[V any](value V, ok bool) Optional[V] {
+	if ok {
+		return Some[V]{Value: value}
 	}
-	return Some[V]{Value: *value}
+	return None[V]{}
 }
 
 // Empty returns an empty Optional.

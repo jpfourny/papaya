@@ -2,8 +2,6 @@ package optional
 
 import (
 	"testing"
-
-	"github.com/jpfourny/papaya/pkg/pointer"
 )
 
 func TestOf(t *testing.T) {
@@ -16,19 +14,26 @@ func TestOf(t *testing.T) {
 	}
 }
 
-func TestOfNillable(t *testing.T) {
-	o := OfNillable(pointer.Ref(42))
-	if !o.Present() {
-		t.Errorf("expected Present() to be true")
-	}
-	if o.Get() != 42 {
-		t.Errorf("expected Get() to return 42")
-	}
+func TestMaybe(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Maybe[int](42, true)
+		if !o.Present() {
+			t.Errorf("expected Present() to be true")
+		}
+		if o.Get() != 42 {
+			t.Errorf("expected Get() to return 42")
+		}
+	})
 
-	o = OfNillable(pointer.Nil[int]())
-	if o.Present() {
-		t.Errorf("expected Present() to be false")
-	}
+	t.Run("None", func(t *testing.T) {
+		o := Maybe[int](42, false)
+		if o.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+		if o.Get() != 0 {
+			t.Errorf("expected Get() to return 0")
+		}
+	})
 }
 
 func TestEmpty(t *testing.T) {
