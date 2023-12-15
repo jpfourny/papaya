@@ -14,7 +14,8 @@ type Optional[V any] interface {
 	Get() V
 
 	// IfPresent calls the provided function with the value contained in the Optional if the Optional is not empty.
-	IfPresent(func(V))
+	// Returns true if the function was called, false otherwise.
+	IfPresent(func(V)) bool
 
 	// OrElse returns the value contained in the Optional if the Optional is not empty, or the provided value otherwise.
 	OrElse(V) V
@@ -36,7 +37,8 @@ func (n None[V]) Get() V {
 	return zero
 }
 
-func (n None[V]) IfPresent(func(V)) {
+func (n None[V]) IfPresent(_ func(V)) bool {
+	return false
 }
 
 func (n None[V]) OrElse(v V) V {
@@ -60,8 +62,9 @@ func (s Some[V]) Present() bool {
 	return true
 }
 
-func (s Some[V]) IfPresent(f func(V)) {
+func (s Some[V]) IfPresent(f func(V)) bool {
 	f(s.Value)
+	return true
 }
 
 func (s Some[V]) OrElse(V) V {

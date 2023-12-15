@@ -1,11 +1,77 @@
 package stream
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/jpfourny/papaya/internal/assert"
+	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
 )
+
+func TestMultiplex(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := Multiplex(Empty[int](), Empty[string](), func(i int, s string) string {
+			return fmt.Sprintf("%s%d", s, i)
+		})
+		got := CollectSlice(s)
+		var want []string
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := Multiplex(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) string {
+			return fmt.Sprintf("%s%d", s, i)
+		})
+		got := CollectSlice(s)
+		want := []string{"foo1", "bar2"}
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := Multiplex(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) string {
+			return fmt.Sprintf("%s%d", s, i)
+		})
+		got := CollectSlice(Limit(s, 1)) // Stops stream after 1 element.
+		want := []string{"foo1"}
+		assert.ElementsMatch(t, got, want)
+	})
+}
+
+func TestMultiplexOrDiscard(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := MultiplexOrDiscard(Empty[int](), Empty[string](), func(i int, s string) optional.Optional[string] {
+			return optional.Of(fmt.Sprintf("%s%d", s, i))
+		})
+		got := CollectSlice(s)
+		var want []string
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := MultiplexOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+			if i == 2 {
+				return optional.Empty[string]()
+			}
+			return optional.Of(fmt.Sprintf("%s%d", s, i))
+		})
+		got := CollectSlice(s)
+		want := []string{"foo1"}
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := MultiplexOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+			if i == 2 {
+				return optional.Empty[string]()
+			}
+			return optional.Of(fmt.Sprintf("%s%d", s, i))
+		})
+		got := CollectSlice(Limit(s, 1)) // Stops stream after 1 element.
+		want := []string{"foo1"}
+		assert.ElementsMatch(t, got, want)
+	})
+}
 
 func TestZip(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {

@@ -1,0 +1,153 @@
+package stream
+
+import (
+	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/pair"
+)
+
+// Combiner represents a function that combines two elements of type E1 and E2 into an element of type F.
+// It is used in the Multiplex operation.
+type Combiner[E1, E2, F any] func(E1, E2) F
+
+// Multiplex combines the elements of two streams into a single stream using the given Combiner function.
+// The resulting stream will have the same number of elements as the shorter of the two input streams.
+//
+// Example usage:
+//
+//	s := stream.Multiplex(stream.Of(1, 2, 3), stream.Of("foo", "bar"), func(i int, s string) string {
+//	    return fmt.Sprintf("%s%d", s, i)
+//	})
+//	out := stream.DebugString(s) // "<foo1, bar2>"
+func Multiplex[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine Combiner[E1, E2, F]) Stream[F] {
+	return MultiplexOrDiscard(s1, s2, func(e1 E1, e2 E2) optional.Optional[F] {
+		return optional.Of(combine(e1, e2))
+	})
+}
+
+// OptionalCombiner represents a function that combines two elements of type E1 and E2 into an optional element of type F.
+// If the elements cannot be combined, the function must return an empty optional.
+// It is used in the MultiplexOrDiscard operation.
+type OptionalCombiner[E1, E2, F any] func(E1, E2) optional.Optional[F]
+
+// MultiplexOrDiscard combines the elements of two streams into a single stream using the given OptionalCombiner function or discards them, if the combiner returns an empty optional.
+// The resulting stream will have, at most, the same number of elements as the shorter of the two input streams.
+//
+// Example usage:
+//
+//	s := stream.MultiplexOrDiscard(stream.Of(1, 2, 3), stream.Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+//	    if i == 2 {
+//	        return optional.Empty[string]()
+//	    }
+//	    return optional.Of(fmt.Sprintf("%s%d", s, i))
+//	})
+//	out := stream.DebugString(s) // "<foo1>"
+func MultiplexOrDiscard[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine OptionalCombiner[E1, E2, F]) Stream[F] {
+	return func(yield Consumer[F]) bool {
+		done := make(chan struct{})
+		defer close(done)
+
+		ch1 := make(chan E1)
+		go func() {
+			defer close(ch1)
+			s1(func(e E1) bool {
+				select {
+				case <-done:
+					return false
+				case ch1 <- e:
+					return true
+				}
+			})
+		}()
+
+		ch2 := make(chan E2)
+		go func() {
+			defer close(ch2)
+			s2(func(e E2) bool {
+				select {
+				case <-done:
+					return false
+				case ch2 <- e:
+					return true
+				}
+			})
+		}()
+
+		for {
+			e1, ok1 := <-ch1
+			e2, ok2 := <-ch2
+			if !ok1 || !ok2 {
+				return true
+			}
+
+			if o := combine(e1, e2); o.Present() {
+				if !yield(o.Get()) {
+					return false
+				}
+			}
+		}
+	}
+}
+
+// Zip returns a stream that pairs each element in the first stream with the corresponding element in the second stream.
+// The resulting stream will have the same number of elements as the shorter of the two input streams.
+//
+// Example usage:
+//
+//	s := stream.Zip(stream.Of(1, 2, 3), stream.Of("foo", "bar"))
+//	out := stream.DebugString(s) // "<(1, foo), (2, bar)>"
+func Zip[E, F any](s1 Stream[E], s2 Stream[F]) Stream[pair.Pair[E, F]] {
+	return Multiplex(s1, s2, func(e E, f F) pair.Pair[E, F] {
+		return pair.Of(e, f)
+	})
+}
+
+// ZipWithIndexInt returns a stream that pairs each element in the input stream with its index, starting at the given offset.
+// The index is of type int.
+//
+// Example usage:
+//
+//	s := stream.ZipWithIndexInt(stream.Of("foo", "bar"), 1)
+//	out := stream.DebugString(s) // "<(foo, 1), (bar, 2)>"
+func ZipWithIndexInt[E any](s Stream[E], offset int) Stream[pair.Pair[E, int]] {
+	return func(yield Consumer[pair.Pair[E, int]]) bool {
+		i := offset - 1
+		return s(func(e E) bool {
+			i++
+			return yield(pair.Of(e, i))
+		})
+	}
+}
+
+// ZipWithIndexInt64 returns a stream that pairs each element in the input stream with its index, starting at the given offset.
+// The index is of type int64.
+//
+// Example usage:
+//
+//	s := stream.ZipWithIndexInt64(stream.Of("foo", "bar"), 1)
+//	out := stream.DebugString(s) // "<(foo, 1), (bar, 2)>"
+func ZipWithIndexInt64[E any](s Stream[E], offset int64) Stream[pair.Pair[E, int64]] {
+	return func(yield Consumer[pair.Pair[E, int64]]) bool {
+		i := offset - 1
+		return s(func(e E) bool {
+			i++
+			return yield(pair.Of(e, i))
+		})
+	}
+}
+
+// ZipWithKey returns a stream that pairs each element in the input stream with the key extracted from the element using the given key extractor.
+// The resulting stream will have the same number of elements as the input stream.
+//
+// Example usage:
+//
+//	s := stream.ZipWithKey(stream.Of("foo", "bar"), func(s string) string {
+//	    return strings.ToUpper(s)
+//	})
+//	out := stream.DebugString(s) // "<(FOO, foo), (BAR, bar)>"
+func ZipWithKey[E any, K any](s Stream[E], ke KeyExtractor[E, K]) Stream[pair.Pair[K, E]] {
+	return func(yield Consumer[pair.Pair[K, E]]) bool {
+		return s(func(e E) bool {
+			return yield(pair.Of(ke(e), e))
+		})
+	}
+}

@@ -50,9 +50,11 @@ func TestIfPresent(t *testing.T) {
 	t.Run("Some", func(t *testing.T) {
 		var called bool
 		o := Of(42)
-		o.IfPresent(func(i int) {
+		if !o.IfPresent(func(i int) {
 			called = true
-		})
+		}) {
+			t.Errorf("expected IfPresent to return true")
+		}
 		if !called {
 			t.Errorf("expected callback to be called")
 		}
@@ -61,9 +63,11 @@ func TestIfPresent(t *testing.T) {
 	t.Run("None", func(t *testing.T) {
 		var called bool
 		o := Empty[int]()
-		o.IfPresent(func(i int) {
+		if o.IfPresent(func(i int) {
 			called = true
-		})
+		}) {
+			t.Errorf("expected IfPresent to return false")
+		}
 		if called {
 			t.Errorf("expected callback to not be called")
 		}
