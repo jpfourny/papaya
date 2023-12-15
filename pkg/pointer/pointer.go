@@ -1,5 +1,7 @@
 package pointer
 
+import "github.com/jpfourny/papaya/pkg/optional"
+
 // Nil returns a nil pointer to the type parameter E.
 func Nil[E any]() *E {
 	return nil
@@ -8,6 +10,14 @@ func Nil[E any]() *E {
 // Ref returns a pointer to a copy of the provided value.
 func Ref[E any](e E) *E {
 	return &e
+}
+
+// Deref returns the value after dereferencing the provided pointer as an optional.Optional, or an empty optional if the pointer is nil.
+func Deref[E any](e *E) optional.Optional[E] {
+	if e == nil {
+		return optional.Empty[E]()
+	}
+	return optional.Of[E](*e)
 }
 
 // DerefOr returns the value after dereferencing the provided pointer, or the provided `or` default value if the pointer is nil.

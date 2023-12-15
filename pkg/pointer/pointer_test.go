@@ -20,6 +20,17 @@ func TestRef(t *testing.T) {
 	}
 }
 
+func TestDeref(t *testing.T) {
+	var i = 42
+	var nilPtr *int
+	if got := Deref(nilPtr); got.Present() {
+		t.Errorf("Deref(%v) = %v; want empty optional", nilPtr, got)
+	}
+	if got := Deref(Ref(i)); !got.Present() || got.Get() != i {
+		t.Errorf("Deref(%v) = %v; want %v", Ref(i), got, i)
+	}
+}
+
 func TestDerefOr(t *testing.T) {
 	var i = 42
 	var nilPtr *int
