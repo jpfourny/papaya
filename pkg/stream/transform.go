@@ -110,3 +110,28 @@ func SortBy[E any](s Stream[E], cmp cmp.Comparer[E]) Stream[E] {
 		return FromSlice(sl)(yield)
 	}
 }
+
+// PadTail returns a stream that pads the tail of the given stream with the given 'pad' value until the stream reaches the given length.
+// If the stream is already longer than the given length, then the stream is returned as-is.
+//
+// Example usage:
+//
+//	s := stream.Pad(stream.Of(1, 2, 3), 0, 5)
+//	out := stream.DebugString(s) // "<1, 2, 3, 0, 0>"
+func PadTail[E any](s Stream[E], pad E, length int) Stream[E] {
+	return func(yield Consumer[E]) bool {
+		i := 0
+		if !s(func(e E) bool {
+			i++
+			return yield(e)
+		}) {
+			return false // Consumer saw enough.
+		}
+		for ; i < length; i++ {
+			if !yield(pad) {
+				return false // Consumer saw enough.
+			}
+		}
+		return true
+	}
+}

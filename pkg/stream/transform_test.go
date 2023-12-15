@@ -53,3 +53,36 @@ func TestSortBy(t *testing.T) {
 	want := []int{1, 2, 3}
 	assert.ElementsMatch(t, got, want)
 }
+
+func TestPadTail(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := PadTail(Of[int](), 0, 5)
+		got := CollectSlice(s)
+		want := []int{0, 0, 0, 0, 0}
+		assert.ElementsMatch(t, got, want)
+	})
+	t.Run("short", func(t *testing.T) {
+		s := PadTail(Of(1, 2, 3), 0, 5)
+		got := CollectSlice(s)
+		want := []int{1, 2, 3, 0, 0}
+		assert.ElementsMatch(t, got, want)
+	})
+	t.Run("long", func(t *testing.T) {
+		s := PadTail(Of(1, 2, 3, 4, 5, 6), 0, 5)
+		got := CollectSlice(s)
+		want := []int{1, 2, 3, 4, 5, 6}
+		assert.ElementsMatch(t, got, want)
+	})
+	t.Run("limited-before-padding", func(t *testing.T) {
+		s := PadTail(Of(1, 2, 3), 0, 5)
+		got := CollectSlice(Limit(s, 2))
+		want := []int{1, 2}
+		assert.ElementsMatch(t, got, want)
+	})
+	t.Run("limited-during-padding", func(t *testing.T) {
+		s := PadTail(Of(1, 2, 3), 0, 5)
+		got := CollectSlice(Limit(s, 4))
+		want := []int{1, 2, 3, 0}
+		assert.ElementsMatch(t, got, want)
+	})
+}
