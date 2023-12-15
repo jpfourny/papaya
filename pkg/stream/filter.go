@@ -13,11 +13,11 @@ type Predicate[E any] func(e E) (pass bool)
 //	    return e % 2 == 0
 //	})
 //	out := stream.DebugString(s) // "<2>"
-func Filter[E any](yield Stream[E], p Predicate[E]) Stream[E] {
-	return func(c Consumer[E]) bool {
-		return yield(func(e E) bool {
+func Filter[E any](s Stream[E], p Predicate[E]) Stream[E] {
+	return func(yield Consumer[E]) bool {
+		return s(func(e E) bool {
 			if p(e) {
-				return c(e)
+				return yield(e)
 			}
 			return true
 		})
@@ -51,15 +51,15 @@ func Limit[E any](s Stream[E], n int64) Stream[E] {
 //
 //	s := stream.Skip(stream.Of(1, 2, 3), 2)
 //	out := stream.DebugString(s) // "<3>"
-func Skip[E any](yield Stream[E], n int64) Stream[E] {
-	return func(c Consumer[E]) bool {
+func Skip[E any](s Stream[E], n int64) Stream[E] {
+	return func(yield Consumer[E]) bool {
 		n := n // Shadow with a copy.
-		return yield(func(e E) bool {
+		return s(func(e E) bool {
 			if n > 0 {
 				n--
 				return true
 			}
-			return c(e)
+			return yield(e)
 		})
 	}
 }
