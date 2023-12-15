@@ -2,8 +2,6 @@ package mapper
 
 import (
 	"testing"
-
-	"github.com/jpfourny/papaya/pkg/pred"
 )
 
 func TestConstant(t *testing.T) {
@@ -21,24 +19,5 @@ func TestIdentity(t *testing.T) {
 	want := 42
 	if got != want {
 		t.Errorf("Identity()(42) = %#v; want %#v", got, want)
-	}
-}
-
-func TestIfElse(t *testing.T) {
-	m := IfElse(
-		pred.GreaterThan(0),
-		Constant[int](1),
-		Constant[int](-1),
-	)
-	got := m(42)
-	want := 1
-	if got != want {
-		t.Errorf("IfElse(GreaterThan(0), Constant(1), Constant(-1))(42) = %#v; want %#v", got, want)
-	}
-
-	got = m(-42)
-	want = -1
-	if got != want {
-		t.Errorf("IfElse(GreaterThan(0), Constant(1), Constant(-1))(-42) = %#v; want %#v", got, want)
 	}
 }

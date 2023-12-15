@@ -3,6 +3,7 @@ package mapper
 import (
 	"testing"
 
+	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pointer"
 )
 
@@ -12,6 +13,22 @@ func TestPointerRef(t *testing.T) {
 	want := pointer.Ref(42)
 	if *got != *want {
 		t.Errorf("*PointerRef()(42) = %#v; want %#v", *got, *want)
+	}
+}
+
+func TestPointerDeref(t *testing.T) {
+	m := PointerDeref[int]()
+	got := m(pointer.Ref(42))
+	want := optional.Of(42)
+	if got != want {
+		t.Errorf("PointerDeref()(&42) = %#v; want %#v", got, want)
+	}
+
+	m = PointerDeref[int]()
+	got = m(nil)
+	want = optional.Empty[int]()
+	if got != want {
+		t.Errorf("PointerDeref()(nil) = %#v; want %#v", got, want)
 	}
 }
 
