@@ -9,9 +9,9 @@ import (
 	"github.com/jpfourny/papaya/pkg/pair"
 )
 
-func TestMultiplex(t *testing.T) {
+func TestCombine(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		s := Multiplex(Empty[int](), Empty[string](), func(i int, s string) string {
+		s := Combine(Empty[int](), Empty[string](), func(i int, s string) string {
 			return fmt.Sprintf("%s%d", s, i)
 		})
 		got := CollectSlice(s)
@@ -20,7 +20,7 @@ func TestMultiplex(t *testing.T) {
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		s := Multiplex(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) string {
+		s := Combine(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) string {
 			return fmt.Sprintf("%s%d", s, i)
 		})
 		got := CollectSlice(s)
@@ -29,7 +29,7 @@ func TestMultiplex(t *testing.T) {
 	})
 
 	t.Run("limited", func(t *testing.T) {
-		s := Multiplex(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) string {
+		s := Combine(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) string {
 			return fmt.Sprintf("%s%d", s, i)
 		})
 		got := CollectSlice(Limit(s, 1)) // Stops stream after 1 element.
@@ -38,9 +38,9 @@ func TestMultiplex(t *testing.T) {
 	})
 }
 
-func TestMultiplexOrDiscard(t *testing.T) {
+func TestCombineOrDiscard(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		s := MultiplexOrDiscard(Empty[int](), Empty[string](), func(i int, s string) optional.Optional[string] {
+		s := CombineOrDiscard(Empty[int](), Empty[string](), func(i int, s string) optional.Optional[string] {
 			return optional.Of(fmt.Sprintf("%s%d", s, i))
 		})
 		got := CollectSlice(s)
@@ -49,7 +49,7 @@ func TestMultiplexOrDiscard(t *testing.T) {
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		s := MultiplexOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+		s := CombineOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
 			if i == 2 {
 				return optional.Empty[string]()
 			}
@@ -61,7 +61,7 @@ func TestMultiplexOrDiscard(t *testing.T) {
 	})
 
 	t.Run("limited", func(t *testing.T) {
-		s := MultiplexOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+		s := CombineOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
 			if i == 2 {
 				return optional.Empty[string]()
 			}
