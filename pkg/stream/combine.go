@@ -137,6 +137,9 @@ func ZipWithIndexInt64[E any](s Stream[E], offset int64) Stream[pair.Pair[E, int
 	)
 }
 
+// KeyExtractor represents a function that extracts a key of type K from a value of type E.
+type KeyExtractor[E, K any] func(e E) K
+
 // ZipWithKey returns a stream that pairs each element in the input stream with the key extracted from the element using the given key extractor.
 // The resulting stream will have the same number of elements as the input stream.
 //
@@ -146,7 +149,7 @@ func ZipWithIndexInt64[E any](s Stream[E], offset int64) Stream[pair.Pair[E, int
 //	    return strings.ToUpper(s)
 //	})
 //	out := stream.DebugString(s) // "<(FOO, foo), (BAR, bar)>"
-func ZipWithKey[E any, K any](s Stream[E], ke KeyExtractor[E, K]) Stream[pair.Pair[K, E]] {
+func ZipWithKey[K, E any](s Stream[E], ke KeyExtractor[E, K]) Stream[pair.Pair[K, E]] {
 	return Map(s, func(e E) pair.Pair[K, E] {
 		return pair.Of(ke(e), e)
 	})

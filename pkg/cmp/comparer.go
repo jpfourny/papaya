@@ -48,8 +48,59 @@ func (c Comparer[E]) Then(other Comparer[E]) Comparer[E] {
 	}
 }
 
+// Min returns the minimum of two values of the same type E using the provided Comparer.
+func (c Comparer[E]) Min(a, b E) E {
+	if c(a, b) <= 0 {
+		return a
+	}
+	return b
+}
+
+// Max returns the maximum of two values of the same type E using the provided Comparer.
+func (c Comparer[E]) Max(a, b E) E {
+	if c(a, b) >= 0 {
+		return a
+	}
+	return b
+}
+
+// Equal returns true if the two values of the same type E are equal using the provided Comparer; otherwise it returns false.
+func (c Comparer[E]) Equal(a, b E) bool {
+	return c(a, b) == 0
+}
+
+// NotEqual returns true if the two values of the same type E are not equal using the provided Comparer; otherwise it returns false.
+func (c Comparer[E]) NotEqual(a, b E) bool {
+	return c(a, b) != 0
+}
+
+// LessThan returns true if the first value of type E is less than the second value of type E using the provided Comparer; otherwise it returns false.
+func (c Comparer[E]) LessThan(a, b E) bool {
+	return c(a, b) < 0
+}
+
+// LessThanOrEqual returns true if the first value of type E is less than or equal to the second value of type E using the provided Comparer; otherwise it returns false.
+func (c Comparer[E]) LessThanOrEqual(a, b E) bool {
+	return c(a, b) <= 0
+}
+
+// GreaterThan returns true if the first value of type E is greater than the second value of type E using the provided Comparer; otherwise it returns false.
+func (c Comparer[E]) GreaterThan(a, b E) bool {
+	return c(a, b) > 0
+}
+
+// GreaterThanOrEqual returns true if the first value of type E is greater than or equal to the second value of type E using the provided Comparer; otherwise it returns false.
+func (c Comparer[E]) GreaterThanOrEqual(a, b E) bool {
+	return c(a, b) >= 0
+}
+
 // KeyExtractor is a function that extracts a sort key of type K from a value of type E.
 type KeyExtractor[E, K any] func(E) K
+
+// SelfComparer is an interface that represents a type that can compare itself to another value of the same type.
+type SelfComparer[E any] interface {
+	Compare(E) int
+}
 
 // Natural returns a Comparer that compares two values of the same type E using the standard library's Compare function for type E.
 // The type parameter E must implement the Ordered constraint.
@@ -73,6 +124,14 @@ func Reverse[E constraint.Ordered]() Comparer[E] {
 	return Natural[E]().Reverse()
 }
 
+// Self returns a Comparer that compares two values of the same type E by calling the Compare method on the first value with the second value as the argument.
+// The type parameter E must implement the SelfComparer interface.
+func Self[E SelfComparer[E]]() Comparer[E] {
+	return func(a, b E) int {
+		return a.Compare(b)
+	}
+}
+
 // Slice returns a Comparer that compares two slices of type []E by comparing the elements of the slices using the provided Comparer.
 // The first N elements of the slices are compared, where N is the length of the shorter slice.
 // If all N elements are equal, the length of the slices are compared.
@@ -81,12 +140,12 @@ func Reverse[E constraint.Ordered]() Comparer[E] {
 //
 //	s := [][]int{{3, 1, 2}, {1, 2, 3}, {1, 2}, {1, 2, 3, 4}}
 //	sort.Slice(s, cmp.Slice(cmp.Natural[int]())) // [[1, 2], [1, 2, 3], [1, 2, 3, 4], [3, 1, 2]]
-func Slice[E any](cmp Comparer[E]) Comparer[[]E] {
+func Slice[E any](compare Comparer[E]) Comparer[[]E] {
 	return func(a, b []E) int {
 		// Sort by common elements.
 		n := min(len(a), len(b))
 		for i := 0; i < n; i++ {
-			if c := cmp(a[i], b[i]); c != 0 {
+			if c := compare(a[i], b[i]); c != 0 {
 				return c
 			}
 		}
@@ -110,7 +169,7 @@ func Slice[E any](cmp Comparer[E]) Comparer[[]E] {
 //
 //	s := []*int{pointer.Ref(3), nil, pointer.Ref(1), pointer.Ref(2)}
 //	sort.Slice(s, cmp.DerefNilFirst(cmp.Natural[int]())) // [nil, 1, 2, 3]
-func DerefNilFirst[E any](cmp Comparer[E]) Comparer[*E] {
+func DerefNilFirst[E any](compare Comparer[E]) Comparer[*E] {
 	return func(a, b *E) int {
 		if a == nil {
 			if b == nil {
@@ -121,7 +180,7 @@ func DerefNilFirst[E any](cmp Comparer[E]) Comparer[*E] {
 		if b == nil {
 			return 1
 		}
-		return cmp(*a, *b)
+		return compare(*a, *b)
 	}
 }
 
@@ -135,7 +194,7 @@ func DerefNilFirst[E any](cmp Comparer[E]) Comparer[*E] {
 //
 //	s := []*int{pointer.Ref(3), nil, pointer.Ref(1), pointer.Ref(2)}
 //	sort.Slice(s, cmp.DerefNilLast(cmp.Natural[int]())) // [1, 2, 3, nil]
-func DerefNilLast[E any](cmp Comparer[E]) Comparer[*E] {
+func DerefNilLast[E any](compare Comparer[E]) Comparer[*E] {
 	return func(a, b *E) int {
 		if a == nil {
 			if b == nil {
@@ -146,7 +205,7 @@ func DerefNilLast[E any](cmp Comparer[E]) Comparer[*E] {
 		if b == nil {
 			return -1
 		}
-		return cmp(*a, *b)
+		return compare(*a, *b)
 	}
 }
 
@@ -199,8 +258,8 @@ func Comparing[E any, K constraint.Ordered](ke KeyExtractor[E, K]) Comparer[E] {
 //		people,
 //		cmp.ComparingBy(func(p Person) string { return p.LastName }, cmp.Natural[string]()),
 //	) // [Person{FirstName:"Jane", LastName:"Doe"}, Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"John", LastName:"Smith"}]
-func ComparingBy[E any, K any](ke KeyExtractor[E, K], cmp Comparer[K]) Comparer[E] {
+func ComparingBy[E any, K any](ke KeyExtractor[E, K], compare Comparer[K]) Comparer[E] {
 	return func(a, b E) int {
-		return cmp(ke(a), ke(b))
+		return compare(ke(a), ke(b))
 	}
 }

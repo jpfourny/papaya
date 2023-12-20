@@ -17,6 +17,10 @@ type Optional[V any] interface {
 	// Returns true if the function was called, false otherwise.
 	IfPresent(func(V)) bool
 
+	// IfPresentElse calls the first function with the value contained in the Optional if the Optional is not empty, or the second function otherwise.
+	// Returns true if the first function was called, false otherwise.
+	IfPresentElse(func(V), func()) bool
+
 	// OrElse returns the value contained in the Optional if the Optional is not empty, or the provided value otherwise.
 	OrElse(V) V
 
@@ -38,6 +42,11 @@ func (n None[V]) Get() V {
 }
 
 func (n None[V]) IfPresent(_ func(V)) bool {
+	return false
+}
+
+func (n None[V]) IfPresentElse(_ func(V), f func()) bool {
+	f()
 	return false
 }
 
@@ -63,6 +72,11 @@ func (s Some[V]) Present() bool {
 }
 
 func (s Some[V]) IfPresent(f func(V)) bool {
+	f(s.Value)
+	return true
+}
+
+func (s Some[V]) IfPresentElse(f func(V), _ func()) bool {
 	f(s.Value)
 	return true
 }

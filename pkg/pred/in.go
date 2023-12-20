@@ -82,8 +82,8 @@ func NotInSlice[E comparable](want []E) func(E) bool {
 //	p(1) // true
 //	p(2) // true
 //	p(3) // false
-func InBy[E any](cmp cmp.Comparer[E], want ...E) func(E) bool {
-	return InSliceBy(want, cmp)
+func InBy[E any](compare cmp.Comparer[E], want ...E) func(E) bool {
+	return InSliceBy(want, compare)
 }
 
 // NotInBy returns a function that returns true if the provided value is not equal to any of the provided want values.
@@ -96,8 +96,8 @@ func InBy[E any](cmp cmp.Comparer[E], want ...E) func(E) bool {
 //	p(1) // false
 //	p(2) // false
 //	p(3) // true
-func NotInBy[E any](cmp cmp.Comparer[E], want ...E) func(E) bool {
-	return NotInSliceBy[E](want, cmp)
+func NotInBy[E any](compare cmp.Comparer[E], want ...E) func(E) bool {
+	return NotInSliceBy[E](want, compare)
 }
 
 // InSliceBy returns a function that returns true if the provided value is equal to any element in the provided want slice.
@@ -110,10 +110,10 @@ func NotInBy[E any](cmp cmp.Comparer[E], want ...E) func(E) bool {
 //	p(1) // true
 //	p(2) // true
 //	p(3) // false
-func InSliceBy[E any](want []E, cmp cmp.Comparer[E]) func(E) bool {
+func InSliceBy[E any](want []E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
 		for _, w := range want {
-			if cmp(got, w) == 0 {
+			if compare.Equal(got, w) {
 				return true
 			}
 		}
@@ -131,10 +131,10 @@ func InSliceBy[E any](want []E, cmp cmp.Comparer[E]) func(E) bool {
 //	p(1) // false
 //	p(2) // false
 //	p(3) // true
-func NotInSliceBy[E any](want []E, cmp cmp.Comparer[E]) func(E) bool {
+func NotInSliceBy[E any](want []E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
 		for _, w := range want {
-			if cmp(got, w) == 0 {
+			if compare.Equal(got, w) {
 				return false
 			}
 		}

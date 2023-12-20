@@ -1,7 +1,11 @@
 package stream
 
+import (
+	"github.com/jpfourny/papaya/pkg/cmp"
+)
+
 // Predicate is a function that accepts a value of type E and returns a boolean.
-// It is used to test values for a given property.
+// It is used to test groups for a given property.
 // It must be idempotent, free of side effects, and thread-safe.
 type Predicate[E any] func(e E) (pass bool)
 
@@ -64,58 +68,35 @@ func Skip[E any](s Stream[E], n int64) Stream[E] {
 	}
 }
 
-// Distinct returns a stream that only contains distinct elements.
-// The elements must implement the comparable interface.
+// Distinct returns a stream that only contains distinct elements of some comparable type E.
 //
 // Example usage:
 //
 //	s := stream.Distinct(stream.Of(1, 2, 2, 3))
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func Distinct[E comparable](s Stream[E]) Stream[E] {
-	return func(yield Consumer[E]) bool {
-		seen := make(map[E]struct{})
-		return s(func(e E) bool {
-			if _, ok := seen[e]; !ok {
-				seen[e] = struct{}{}
-				return yield(e)
-			}
-			return true
-		})
-	}
+	return distinctWithGrouper(s, newMapGrouper[E, struct{}]())
 }
 
-// KeyExtractor represents a function that extracts a key of type K from a value of type E.
-type KeyExtractor[E, K any] func(e E) K
-
-// DistinctBy returns a stream that only contains distinct elements, as determined by the given key extractor.
-// The key extractor is used to extract a key from each element, and the keys are compared to determine distinctness.
-// The key must implement the comparable interface.
+// DistinctCompare returns a stream that only contains distinct elements using the given comparer to compare elements.
 //
 // Example usage:
 //
-//	type Person struct {
-//	    FirstName string
-//	    LastName  string
-//	}
-//
-//	s := stream.DistinctBy(stream.Of(
-//	    Person{"John", "Doe"},
-//	    Person{"Jane", "Doe"},
-//	    Person{"John", "Smith"},
-//	), func(p Person) string {
-//	    return p.FirstName
-//	})
-//	out := stream.DebugString(s) // "<Person{FirstName:"John", LastName:"Doe"}, Person{FirstName:"Jane", LastName:"Doe"}>"
-func DistinctBy[E any, K comparable](s Stream[E], ke KeyExtractor[E, K]) Stream[E] {
+//	s := stream.DistinctSorted(stream.Of(1, 2, 2, 3), cmp.Natural[int]())
+//	out := stream.DebugString(s) // "<1, 2, 3>"
+func DistinctCompare[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
+	return distinctWithGrouper(s, newSortedGrouper[E, struct{}](compare))
+}
+
+func distinctWithGrouper[E any](s Stream[E], ng newGrouper[E, struct{}]) Stream[E] {
 	return func(yield Consumer[E]) bool {
-		seen := make(map[K]struct{})
+		seen := ng()
 		return s(func(e E) bool {
-			k := ke(e)
-			if _, ok := seen[k]; !ok {
-				seen[k] = struct{}{}
-				return yield(e)
+			if seen.Get(e).Present() {
+				return true // Skip.
 			}
-			return true
+			seen.Put(e, struct{}{})
+			return yield(e)
 		})
 	}
 }

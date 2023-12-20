@@ -25,12 +25,18 @@ type Finisher[A, F any] func(a A) (result F)
 //
 // Example usage:
 //
-//	out := stream.Reduce(stream.Of(1, 2, 3), func(a, e int) int {
-//	    return a + e
-//	}) // Some(6)
-//	out = stream.Reduce(stream.Empty[int](), func(a, e int) int {
-//	    return a + e
-//	} // None()
+//		out := stream.Reduce(
+//		  stream.Of(1, 2, 3),
+//		  func(a, e int) int { // Reduce values by addition.
+//		    return a + e
+//		  },
+//	 ) // Some(6)
+//		out = stream.Reduce(
+//		  stream.Empty[int](),
+//		  func(a, e int) int { // Reduce values by addition.
+//		    return a + e
+//		  },
+//	 ) // None()
 func Reduce[E any](s Stream[E], reduce Reducer[E]) (result optional.Optional[E]) {
 	result = optional.Empty[E]()
 	s(func(e E) bool {
@@ -54,12 +60,12 @@ func Reduce[E any](s Stream[E], reduce Reducer[E]) (result optional.Optional[E])
 //
 //	s := stream.Aggregate(
 //	  stream.Of(1, 2, 3),
-//	  0,                   // Initial value.
+//	  0,                   // Initial value
 //	  func(a, e int) int {
-//	      return a + e     // Accumulate with addition.
+//	      return a + e     // Accumulate with addition
 //	  },
 //	  func(a int) int {
-//	      return a * 2     // Finish with multiplication by 2.
+//	      return a * 2     // Finish with multiplication by 2
 //	  },
 //	) // (1+2+3) * 2 = 12
 func Aggregate[E, A, F any](s Stream[E], identity A, accumulate Accumulator[A, E], finish Finisher[A, F]) F {
@@ -78,13 +84,11 @@ func Aggregate[E, A, F any](s Stream[E], identity A, accumulate Accumulator[A, E
 // Example usage:
 //
 //	n := stream.Sum(stream.Of(1, 2, 3)) // 6 (int)
-func Sum[E constraint.RealNumber](s Stream[E]) E {
-	return Aggregate(
+func Sum[E constraint.Numeric](s Stream[E]) E {
+	return Reduce(
 		s,
-		E(0),
 		func(a E, e E) E { return a + e },
-		func(a E) E { return a },
-	)
+	).OrElse(E(0))
 }
 
 // SumInteger computes the sum of all elements in the stream of any signed-integer type E and returns the result as type int64.
@@ -180,11 +184,11 @@ func Min[E constraint.Ordered](s Stream[E]) (min optional.Optional[E]) {
 //
 //	min := stream.MinBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // Some(1)
 //	min = stream.MinBy(stream.Empty[int](), cmp.Natural[int]()) // None()
-func MinBy[E any](s Stream[E], cmp cmp.Comparer[E]) (min optional.Optional[E]) {
+func MinBy[E any](s Stream[E], compare cmp.Comparer[E]) (min optional.Optional[E]) {
 	return Reduce(
 		s,
 		func(a, e E) E {
-			if cmp(e, a) < 0 {
+			if compare.LessThan(e, a) {
 				return e
 			}
 			return a
@@ -212,11 +216,11 @@ func Max[E constraint.Ordered](s Stream[E]) (max optional.Optional[E]) {
 //
 //	max := stream.MaxBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // Some(3)
 //	max = stream.MaxBy(stream.Empty[int](), cmp.Natural[int]()) // None()
-func MaxBy[E any](s Stream[E], cmp cmp.Comparer[E]) (max optional.Optional[E]) {
+func MaxBy[E any](s Stream[E], compare cmp.Comparer[E]) (max optional.Optional[E]) {
 	return Reduce(
 		s,
 		func(a, e E) E {
-			if cmp(e, a) > 0 {
+			if compare.GreaterThan(e, a) {
 				return e
 			}
 			return a
@@ -231,7 +235,6 @@ func MaxBy[E any](s Stream[E], cmp cmp.Comparer[E]) (max optional.Optional[E]) {
 //
 //	n := stream.Count(stream.Of(1, 2, 3)) // 3
 func Count[E any](s Stream[E]) (count int64) {
-	// Count is so simple that we don't bother to use a Aggregate.
 	s(func(e E) bool {
 		count++
 		return true

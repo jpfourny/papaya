@@ -22,15 +22,6 @@ func TestDistinct(t *testing.T) {
 	assert.ElementsMatch(t, got, want)
 }
 
-func TestDistinctBy(t *testing.T) {
-	s := DistinctBy(Of(1, 2, 3, 2, 1), func(e int) int {
-		return e % 2
-	})
-	got := CollectSlice(s)
-	want := []int{1, 2}
-	assert.ElementsMatch(t, got, want)
-}
-
 func TestLimit(t *testing.T) {
 	t.Run("limit-0", func(t *testing.T) {
 		s := Limit(Of(1, 2, 3, 4, 5), 0)

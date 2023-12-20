@@ -103,10 +103,10 @@ func SortDesc[E constraint.Ordered](s Stream[E]) Stream[E] {
 //
 //	s := stream.SortBy(stream.Of(3, 1, 2), cmp.Natural[int]())
 //	out := stream.DebugString(s) // "<1, 2, 3>"
-func SortBy[E any](s Stream[E], cmp cmp.Comparer[E]) Stream[E] {
+func SortBy[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
 	return func(yield Consumer[E]) bool {
 		sl := CollectSlice(s)
-		slices.SortFunc(sl, cmp)
+		slices.SortFunc(sl, compare)
 		return FromSlice(sl)(yield)
 	}
 }

@@ -4,8 +4,151 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/jpfourny/papaya/internal/assert"
+	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
 )
+
+func TestSortedGrouper_Get(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		g := newSortedGrouper[int, string](cmp.Natural[int]())()
+		got := g.Get(0)
+		want := optional.Empty[string]()
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		g := newSortedGrouper[int, string](cmp.Natural[int]())()
+		g.Put(1, "one")
+		g.Put(2, "two")
+		g.Put(1, "uno")
+		g.Put(3, "three")
+		g.Put(2, "dos")
+		got := g.Get(1)
+		want := optional.Of("uno")
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		got = g.Get(2)
+		want = optional.Of("dos")
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		got = g.Get(3)
+		want = optional.Of("three")
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		got = g.Get(4)
+		want = optional.Empty[string]()
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+	})
+}
+
+func TestSortedGrouper_ForEach(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		g := newSortedGrouper[int, string](cmp.Natural[int]())()
+		var got []int
+		g.ForEach(func(key int, group string) bool {
+			got = append(got, key)
+			return true
+		})
+		if len(got) != 0 {
+			t.Fatalf("got %#v, want %#v", got, []int{})
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		g := newSortedGrouper[int, string](cmp.Natural[int]())()
+		g.Put(1, "one")
+		g.Put(2, "two")
+		g.Put(1, "uno")
+		g.Put(3, "three")
+		g.Put(2, "dos")
+		var got []int
+		g.ForEach(func(key int, group string) bool {
+			got = append(got, key)
+			return true
+		})
+		want := []int{1, 2, 3}
+		assert.ElementsMatch(t, got, want)
+	})
+}
+
+func TestMapGrouper_Get(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		g := newMapGrouper[int, string]()()
+		got := g.Get(0)
+		want := optional.Empty[string]()
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		g := newMapGrouper[int, string]()()
+		g.Put(1, "one")
+		g.Put(2, "two")
+		g.Put(1, "uno")
+		g.Put(3, "three")
+		g.Put(2, "dos")
+		got := g.Get(1)
+		want := optional.Of("uno")
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		got = g.Get(2)
+		want = optional.Of("dos")
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		got = g.Get(3)
+		want = optional.Of("three")
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		got = g.Get(4)
+		want = optional.Empty[string]()
+		if got != want {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+	})
+}
+
+func TestMapGrouper_ForEach(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		g := newMapGrouper[int, string]()()
+		var got []int
+		g.ForEach(func(key int, group string) bool {
+			got = append(got, key)
+			return true
+		})
+		if len(got) != 0 {
+			t.Fatalf("got %#v, want %#v", got, []int{})
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		g := newMapGrouper[int, string]()()
+		g.Put(1, "one")
+		g.Put(2, "two")
+		g.Put(1, "uno")
+		g.Put(3, "three")
+		g.Put(2, "dos")
+		var got []int
+		g.ForEach(func(key int, group string) bool {
+			got = append(got, key)
+			return true
+		})
+		want := []int{1, 2, 3}
+		assert.ElementsMatchAnyOrder(t, got, want)
+	})
+}
 
 func TestGroupByKey(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
