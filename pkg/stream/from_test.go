@@ -7,67 +7,8 @@ import (
 	"testing"
 
 	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/mapper"
-	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/pred"
 )
-
-func TestEmpty(t *testing.T) {
-	s := Empty[int]()
-	got := CollectSlice(s)
-	var want []int
-	assert.ElementsMatch(t, got, want)
-}
-
-func TestOf(t *testing.T) {
-	s := Of(1, 2, 3)
-	got := CollectSlice(s)
-	want := []int{1, 2, 3}
-	assert.ElementsMatch(t, got, want)
-}
-
-type emptyIter struct{}
-
-func (_ emptyIter) Next() optional.Optional[int] {
-	return optional.Empty[int]()
-}
-
-type sliceIter struct {
-	slice []int
-}
-
-func (it *sliceIter) Next() optional.Optional[int] {
-	if len(it.slice) == 0 {
-		return optional.Empty[int]()
-	}
-	e := it.slice[0]
-	it.slice = it.slice[1:]
-	return optional.Of(e)
-}
-
-func TestFromIterator(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		s := FromIterator[int](emptyIter{})
-		got := CollectSlice(s)
-		var want []int
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		s := FromIterator[int](&sliceIter{slice: []int{1, 2, 3}})
-		got := CollectSlice(s)
-		want := []int{1, 2, 3}
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("limited", func(t *testing.T) {
-		s := FromIterator[int](&sliceIter{slice: []int{1, 2, 3}})
-		got := CollectSlice(Limit(s, 1)) // Stops stream after 1 element.
-		want := []int{1}
-		assert.ElementsMatch(t, got, want)
-	})
-}
 
 func TestFromSlice(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
@@ -324,29 +265,6 @@ func TestFromChannelCtx(t *testing.T) {
 		s := FromChannelCtx(context.Background(), ch)
 		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
 		want := []int{1, 2}
-		assert.ElementsMatch(t, got, want)
-	})
-}
-
-func TestRange(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		s := Range(0, pred.LessThan(0), mapper.Increment(1))
-		got := CollectSlice(s)
-		var want []int
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		s := Range(1, pred.LessThanOrEqual(5), mapper.Increment(2))
-		got := CollectSlice(s)
-		want := []int{1, 3, 5}
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("limited", func(t *testing.T) {
-		s := Range(1, pred.LessThanOrEqual(5), mapper.Increment(2))
-		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
-		want := []int{1, 3}
 		assert.ElementsMatch(t, got, want)
 	})
 }

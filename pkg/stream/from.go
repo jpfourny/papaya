@@ -3,47 +3,8 @@ package stream
 import (
 	"context"
 
-	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
 )
-
-// Stream represents a function that produces a sequence of elements of type E and sends them to the given Consumer.
-//
-// Streams are lazy, meaning they only produce elements when the consumer is invoked.
-// Furthermore, streams are idempotent, meaning they can be invoked multiple times with the same result.
-// However, the order of the elements is not guaranteed to be the same across multiple invocations.
-//
-// If the Consumer returns false, the stream must stop producing elements and return false immediately.
-// If the stream is exhausted, it must return true.
-type Stream[E any] func(c Consumer[E]) bool
-
-// Consumer represents a function that accepts a yielded element of type E and returns a boolean value.
-// The boolean value indicates whether the consumer wishes to continue accepting elements.
-// If the consumer returns false, the caller must stop yielding elements.
-type Consumer[E any] func(yield E) (cont bool)
-
-// Empty returns a stream that does not contain any elements.
-// It always returns true when invoked with a consumer.
-//
-// Example usage:
-//
-//	s := stream.Empty[int]()
-//	out := stream.DebugString(s) // "<>"
-func Empty[E any]() Stream[E] {
-	return func(_ Consumer[E]) bool {
-		return true
-	}
-}
-
-// Of creates a stream from the given elements.
-//
-// Example usage:
-//
-//	s := stream.Of(1, 2, 3)
-//	out := stream.DebugString(s) // "<1, 2, 3>"
-func Of[E any](e ...E) Stream[E] {
-	return FromSlice(e)
-}
 
 // FromSlice creates a stream that iterates over the elements of the given slice.
 // The order of the elements is guaranteed to be the same as the order in the slice.
@@ -192,41 +153,5 @@ func FromChannelCtx[E any](ctx context.Context, ch <-chan E) Stream[E] {
 				return true
 			}
 		}
-	}
-}
-
-// Iterator represents a type that provides a way to iterate over a sequence of elements.
-// The Next() method is used to obtain the next element in the iteration, if any.
-// If there are no more elements, the method returns an empty optional.Optional..
-type Iterator[E any] interface {
-	Next() optional.Optional[E]
-}
-
-// FromIterator returns a stream that produces elements by calling the provided Iterator function.
-func FromIterator[E any](it Iterator[E]) Stream[E] {
-	return func(yield Consumer[E]) bool {
-		for e := it.Next(); e.Present(); e = it.Next() {
-			if !yield(e.Get()) {
-				return false // Consumer saw enough.
-			}
-		}
-		return true
-	}
-}
-
-// Range returns a stream that produces elements over a range beginning at `start`, advanced by the `next` function, and ending when `cond` predicate returns false.
-//
-// Example usage:
-//
-//	s := stream.Range(1, pred.LessThanOrEqual(5), mapper.Increment(2))
-//	out := stream.DebugString(s) // "<1, 3, 5>"
-func Range[E any](start E, cond Predicate[E], next Mapper[E, E]) Stream[E] {
-	return func(yield Consumer[E]) bool {
-		for e := start; cond(e); e = next(e) {
-			if !yield(e) {
-				return false
-			}
-		}
-		return true
 	}
 }

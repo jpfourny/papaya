@@ -68,9 +68,10 @@ func Peek[E any](s Stream[E], peek func(e E)) Stream[E] {
 
 // DebugString returns a string representation of up to the first 100 elements in the stream.
 // The string is formatted like `<e1, e2, e3>` where e1, e2, e3 are the string representations of the elements.
+// If the stream has more than 100 elements, the string will end with `...>` to indicate that the stream was truncated.
 // Useful for debugging.
 func DebugString[E any](s Stream[E]) string {
-	return "<" + StringJoin(Map(Limit(s, 100), mapper.Sprintf[E]("%#v")), ", ") + ">"
+	return "<" + StringJoin(Truncate(Map(s, mapper.Sprintf[E]("%#v")), 100, "..."), ", ") + ">"
 }
 
 // StringJoin concatenates the elements of the provided stream of strings into a single string, using the specified separator.

@@ -33,6 +33,12 @@ func TestDebugString(t *testing.T) {
 	if got != want {
 		t.Errorf("got %#v, want %#v", got, want)
 	}
+
+	got = DebugString(Generate(func() int { return 1 })) // Infinite stream will be truncated to 100 elements (+ tailing ...).
+	want = "<1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...>"
+	if got != want {
+		t.Errorf("got %#v, want %#v", got, want)
+	}
 }
 
 func TestIsEmpty(t *testing.T) {
