@@ -2,8 +2,10 @@ package cmp
 
 import (
 	stdcmp "cmp"
+	"time"
 
 	"github.com/jpfourny/papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/pkg/pair"
 )
 
 // Comparer is a function that compares two values of the same type E and returns an integer.
@@ -129,6 +131,96 @@ func Reverse[E constraint.Ordered]() Comparer[E] {
 func Self[E SelfComparer[E]]() Comparer[E] {
 	return func(a, b E) int {
 		return a.Compare(b)
+	}
+}
+
+// Bool returns a Comparer that compares two values of type bool.
+// The zero value of type bool is considered less than false, which is considered less than true.
+func Bool() Comparer[bool] {
+	return func(a, b bool) int {
+		if a == b {
+			return 0
+		}
+		if a {
+			return 1
+		}
+		return -1
+	}
+}
+
+// Time returns a Comparer that compares two values of type time.Time.
+func Time() Comparer[time.Time] {
+	return func(a, b time.Time) int {
+		if a.Before(b) {
+			return -1
+		} else if a.After(b) {
+			return 1
+		} else {
+			return 0
+		}
+	}
+}
+
+// Complex64 returns a Comparer that compares two values of type complex64.
+// The real and imaginary parts of the complex numbers are compared in order.
+// If the real parts are equal, the imaginary parts are compared.
+// If both the real and imaginary parts are equal, the complex numbers are considered equal.
+func Complex64() Comparer[complex64] {
+	return func(a, b complex64) int {
+		aReal, aImag := real(a), imag(a)
+		bReal, bImag := real(b), imag(b)
+
+		if aReal < bReal {
+			return -1
+		} else if aReal > bReal {
+			return 1
+		} else if aImag < bImag {
+			return -1
+		} else if aImag > bImag {
+			return 1
+		} else {
+			return 0
+		}
+	}
+}
+
+// Complex128 returns a Comparer that compares two values of type complex128.
+// The real and imaginary parts of the complex numbers are compared in order.
+// If the real parts are equal, the imaginary parts are compared.
+// If both the real and imaginary parts are equal, the complex numbers are considered equal.
+func Complex128() Comparer[complex128] {
+	return func(a, b complex128) int {
+		aReal, aImag := real(a), imag(a)
+		bReal, bImag := real(b), imag(b)
+
+		if aReal < bReal {
+			return -1
+		} else if aReal > bReal {
+			return 1
+		} else if aImag < bImag {
+			return -1
+		} else if aImag > bImag {
+			return 1
+		} else {
+			return 0
+		}
+	}
+}
+
+// Pair returns a Comparer that compares two values of type pair.Pair[A, B] by comparing the elements of the pairs using the provided Comparer functions.
+// If the first elements are equal, the second elements of the pairs are compared.
+// If both the first and second elements are equal, the pairs are considered equal.
+//
+// Example:
+//
+//	s := []pair.Pair[int, int]{{3, 1}, {1, 2}, {1, 1}, {1, 3}}
+//	sort.Slice(s, cmp.Pair(cmp.Natural[int](), cmp.Natural[int]())) // [[1, 1], [1, 2], [1, 3], [3, 1]]
+func Pair[A, B any](compareA Comparer[A], compareB Comparer[B]) Comparer[pair.Pair[A, B]] {
+	return func(a, b pair.Pair[A, B]) int {
+		if c := compareA(a.First(), b.First()); c != 0 {
+			return c
+		}
+		return compareB(a.Second(), b.Second())
 	}
 }
 
