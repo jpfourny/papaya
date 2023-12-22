@@ -104,8 +104,7 @@ type SelfComparer[E any] interface {
 	Compare(E) int
 }
 
-// Natural returns a Comparer that compares two values of the same type E using the standard library's Compare function for type E.
-// The type parameter E must implement the Ordered constraint.
+// Natural returns a Comparer that compares two values of the same ordered type E using <, ==, > operators.
 //
 // Example:
 //
@@ -115,8 +114,7 @@ func Natural[E constraint.Ordered]() Comparer[E] {
 	return stdcmp.Compare[E]
 }
 
-// Reverse returns a Comparer that compares two values of the same type E in reverse order using the standard library's Compare function for type E.
-// The type parameter E must implement the Ordered constraint.
+// Reverse returns a Comparer that compares two values of the same ordered type E in reverse order using <, ==, > operators.
 //
 // Example:
 //

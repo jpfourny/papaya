@@ -75,27 +75,27 @@ func Skip[E any](s Stream[E], n int64) Stream[E] {
 //	s := stream.Distinct(stream.Of(1, 2, 2, 3))
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func Distinct[E comparable](s Stream[E]) Stream[E] {
-	return distinctWithGrouper(s, newMapGrouper[E, struct{}]())
+	return distinct(s, newMapGrouper[E, struct{}]())
 }
 
-// DistinctCompare returns a stream that only contains distinct elements using the given comparer to compare elements.
+// DistinctBy returns a stream that only contains distinct elements using the given comparer to compare elements.
 //
 // Example usage:
 //
-//	s := stream.DistinctSorted(stream.Of(1, 2, 2, 3), cmp.Natural[int]())
+//	s := stream.DistinctBy(stream.Of(1, 2, 2, 3), cmp.Natural[int]())
 //	out := stream.DebugString(s) // "<1, 2, 3>"
-func DistinctCompare[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
-	return distinctWithGrouper(s, newSortedGrouper[E, struct{}](compare))
+func DistinctBy[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
+	return distinct(s, newSortedGrouper[E, struct{}](compare))
 }
 
-func distinctWithGrouper[E any](s Stream[E], ng newGrouper[E, struct{}]) Stream[E] {
+func distinct[E any](s Stream[E], ng newGrouper[E, struct{}]) Stream[E] {
 	return func(yield Consumer[E]) bool {
 		seen := ng()
 		return s(func(e E) bool {
-			if seen.Get(e).Present() {
+			if seen.get(e).Present() {
 				return true // Skip.
 			}
-			seen.Put(e, struct{}{})
+			seen.put(e, struct{}{})
 			return yield(e)
 		})
 	}

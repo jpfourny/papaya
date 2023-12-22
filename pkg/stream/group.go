@@ -9,88 +9,6 @@ import (
 	"github.com/jpfourny/papaya/pkg/pair"
 )
 
-type grouper[K, G any] interface {
-	Get(key K) optional.Optional[G]
-	Put(key K, group G)
-	ForEach(func(key K, group G) bool) bool
-}
-
-type newGrouper[K, G any] func() grouper[K, G]
-
-func newMapGrouper[K comparable, G any]() newGrouper[K, G] {
-	return func() grouper[K, G] {
-		return make(mapGrouper[K, G])
-	}
-}
-
-func newSortedGrouper[K any, G any](compare cmp.Comparer[K]) newGrouper[K, G] {
-	return func() grouper[K, G] {
-		return &sortedGrouper[K, G]{
-			compare: compare,
-		}
-	}
-}
-
-type mapGrouper[K comparable, G any] map[K]G
-
-func (mg mapGrouper[K, G]) Get(key K) optional.Optional[G] {
-	if g, ok := mg[key]; ok {
-		return optional.Of(g)
-	}
-	return optional.Empty[G]()
-}
-
-func (mg mapGrouper[K, G]) Put(key K, group G) {
-	mg[key] = group
-}
-
-func (mg mapGrouper[K, G]) ForEach(yield func(key K, group G) bool) bool {
-	for k, v := range mg {
-		if !yield(k, v) {
-			return false
-		}
-	}
-	return true
-}
-
-type sortedGrouper[K any, G any] struct {
-	compare cmp.Comparer[K]
-	keys    []K
-	groups  []G
-}
-
-func (sg *sortedGrouper[K, G]) Get(key K) optional.Optional[G] {
-	if i, ok := slices.BinarySearchFunc(sg.keys, key, sg.compare); ok {
-		return optional.Of(sg.groups[i])
-	}
-	return optional.Empty[G]()
-}
-
-func (sg *sortedGrouper[K, G]) Put(key K, group G) {
-	i, ok := slices.BinarySearchFunc(sg.keys, key, sg.compare)
-	if ok {
-		// Replace value at position i.
-		sg.groups[i] = group
-	} else {
-		// Insert key and value at position i.
-		sg.keys = append(sg.keys, key)
-		sg.groups = append(sg.groups, group)
-		copy(sg.keys[i+1:], sg.keys[i:])     // Shift keys.
-		copy(sg.groups[i+1:], sg.groups[i:]) // Shift groups.
-		sg.keys[i] = key                     // Insert key.
-		sg.groups[i] = group                 // Insert group.
-	}
-}
-
-func (sg *sortedGrouper[K, G]) ForEach(f func(key K, group G) bool) bool {
-	for i, k := range sg.keys {
-		if !f(k, sg.groups[i]) {
-			return false
-		}
-	}
-	return true
-}
-
 // GroupByKey returns a stream that groups key-value pairs by key.
 // The resulting stream contains key-value pairs where the key is the same, and the value is a slice of all the groups that had that key.
 // The key type K must be comparable.
@@ -133,12 +51,12 @@ func groupByKey[K any, V any](s Stream[pair.Pair[K, V]], ng newGrouper[K, []V]) 
 	return func(yield Consumer[pair.Pair[K, []V]]) bool {
 		grpr := ng()
 		s(func(p pair.Pair[K, V]) bool {
-			g := grpr.Get(p.First()).OrElse(nil)
+			g := grpr.get(p.First()).OrElse(nil)
 			g = append(g, p.Second())
-			grpr.Put(p.First(), g)
+			grpr.put(p.First(), g)
 			return true
 		})
-		return grpr.ForEach(func(k K, vs []V) bool {
+		return grpr.forEach(func(k K, vs []V) bool {
 			return yield(pair.Of(k, vs))
 		})
 	}
@@ -191,17 +109,17 @@ func reduceByKey[K any, V any](s Stream[pair.Pair[K, V]], ng newGrouper[K, V], r
 	return func(yield Consumer[pair.Pair[K, V]]) bool {
 		grpr := ng()
 		s(func(p pair.Pair[K, V]) bool {
-			grpr.Get(p.First()).IfPresentElse(
+			grpr.get(p.First()).IfPresentElse(
 				func(v V) { // If present
-					grpr.Put(p.First(), reduce(v, p.Second()))
+					grpr.put(p.First(), reduce(v, p.Second()))
 				},
 				func() { // Else
-					grpr.Put(p.First(), p.Second())
+					grpr.put(p.First(), p.Second())
 				},
 			)
 			return true
 		})
-		return grpr.ForEach(func(k K, v V) bool {
+		return grpr.forEach(func(k K, v V) bool {
 			return yield(pair.Of(k, v))
 		})
 	}
@@ -268,17 +186,17 @@ func aggregateByKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], ng newGrouper
 	return func(yield Consumer[pair.Pair[K, F]]) bool {
 		grpr := ng()
 		s(func(p pair.Pair[K, V]) bool {
-			grpr.Get(p.First()).IfPresentElse(
+			grpr.get(p.First()).IfPresentElse(
 				func(a A) { // If present
-					grpr.Put(p.First(), accumulate(a, p.Second()))
+					grpr.put(p.First(), accumulate(a, p.Second()))
 				},
 				func() { // Else
-					grpr.Put(p.First(), accumulate(identity, p.Second()))
+					grpr.put(p.First(), accumulate(identity, p.Second()))
 				},
 			)
 			return true
 		})
-		grpr.ForEach(func(k K, a A) bool {
+		grpr.forEach(func(k K, a A) bool {
 			return yield(pair.Of(k, finish(a)))
 		})
 		return true
@@ -472,4 +390,100 @@ func SumBySortedKey[K any, V constraint.Numeric](s Stream[pair.Pair[K, V]], keyC
 		keyCompare,
 		func(a, b V) V { return a + b },
 	)
+}
+
+// grouper provides map-like interface to index groups by key.
+// A group could be anything; for example, a slice of elements or an accumulator for an aggregation.
+// This interface and all implementations are for internal use only, so they are not exported.
+type grouper[K, G any] interface {
+	get(key K) optional.Optional[G]
+	put(key K, group G)
+	forEach(func(key K, group G) bool) bool
+}
+
+// newGrouper represents a factory function that creates a grouper implementation.
+type newGrouper[K, G any] func() grouper[K, G]
+
+// newMapGrouper returns a newGrouper factory function for creating a map-based grouper with O(1) access time.
+// The key type K must be comparable.
+func newMapGrouper[K comparable, G any]() newGrouper[K, G] {
+	return func() grouper[K, G] {
+		return make(mapGrouper[K, G])
+	}
+}
+
+// newSortedGrouper returns a newGrouper factory function for creating a sorted grouper with O(log n) access time.
+// This is used when the key type is not comparable, ruling out the use of a map-based grouper.
+// The keys are sorted using the given cmp.Comparer.
+func newSortedGrouper[K any, G any](compare cmp.Comparer[K]) newGrouper[K, G] {
+	return func() grouper[K, G] {
+		return &sortedGrouper[K, G]{
+			compare: compare,
+		}
+	}
+}
+
+// mapGrouper provides an implementation of grouper using a map.
+// The key type K must be comparable.
+type mapGrouper[K comparable, G any] map[K]G
+
+func (mg mapGrouper[K, G]) get(key K) optional.Optional[G] {
+	if g, ok := mg[key]; ok {
+		return optional.Of(g)
+	}
+	return optional.Empty[G]()
+}
+
+func (mg mapGrouper[K, G]) put(key K, group G) {
+	mg[key] = group
+}
+
+func (mg mapGrouper[K, G]) forEach(yield func(key K, group G) bool) bool {
+	for k, v := range mg {
+		if !yield(k, v) {
+			return false
+		}
+	}
+	return true
+}
+
+// sortedGrouper provides an implementation of grouper using sorted slices and binary search.
+type sortedGrouper[K any, G any] struct {
+	compare cmp.Comparer[K]
+	keys    []K
+	groups  []G
+}
+
+func (sg *sortedGrouper[K, G]) get(key K) optional.Optional[G] {
+	if i, ok := sg.indexOf(key); ok {
+		return optional.Of(sg.groups[i])
+	}
+	return optional.Empty[G]()
+}
+
+func (sg *sortedGrouper[K, G]) put(key K, group G) {
+	i, ok := sg.indexOf(key)
+	if ok {
+		sg.groups[i] = group
+	} else {
+		sg.keys = append(sg.keys, key)
+		sg.groups = append(sg.groups, group)
+		copy(sg.keys[i+1:], sg.keys[i:])     // Shift keys.
+		copy(sg.groups[i+1:], sg.groups[i:]) // Shift groups.
+		sg.keys[i] = key                     // Insert key.
+		sg.groups[i] = group                 // Insert group.
+	}
+}
+
+func (sg *sortedGrouper[K, G]) indexOf(key K) (int, bool) {
+	return slices.BinarySearchFunc(sg.keys, key, sg.compare)
+}
+
+func (sg *sortedGrouper[K, G]) forEach(f func(key K, group G) bool) bool {
+	for i, k := range sg.keys {
+		if !f(k, sg.groups[i]) {
+			return false
+		}
+	}
+	return true
 }

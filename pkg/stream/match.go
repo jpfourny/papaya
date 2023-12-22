@@ -124,7 +124,7 @@ func ContainsAll[E comparable](s Stream[E], es ...E) bool {
 //	out = stream.ContainsAllBy(stream.Of(1, 2, 3), cmp.Natural[int](), 2, 4) // false
 func ContainsAllBy[E any](s Stream[E], compare cmp.Comparer[E], es ...E) bool {
 	return Count(
-		DistinctCompare(
+		DistinctBy(
 			Filter(s, pred.InBy(compare, es...)),
 			compare,
 		),
