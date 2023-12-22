@@ -1,10 +1,10 @@
 package stream
 
 import (
+	"github.com/jpfourny/papaya/pkg/optional"
 	"strings"
 
 	"github.com/jpfourny/papaya/pkg/mapper"
-	"github.com/jpfourny/papaya/pkg/optional"
 )
 
 // ForEach invokes the given consumer for each element in the stream.
@@ -38,6 +38,36 @@ func IsEmpty[E any](s Stream[E]) (empty bool) {
 	s(func(e E) bool {
 		empty = false
 		return false
+	})
+	return
+}
+
+// First returns the first element in the stream; an empty optional.Optional, if the stream is empty.
+//
+// Example usage:
+//
+//	out := stream.First(stream.Of(1, 2, 3)) // Some(1)
+//	out = stream.First(stream.Empty[int]()) // None()
+func First[E any](s Stream[E]) (first optional.Optional[E]) {
+	first = optional.Empty[E]()
+	s(func(e E) bool {
+		first = optional.Of(e)
+		return false
+	})
+	return
+}
+
+// Last returns the last element in the stream; an empty optional.Optional, if the stream is empty.
+//
+// Example usage:
+//
+//	out := stream.Last(stream.Of(1, 2, 3)) // Some(3)
+//	out = stream.Last(stream.Empty[int]()) // None()
+func Last[E any](s Stream[E]) (last optional.Optional[E]) {
+	last = optional.Empty[E]()
+	s(func(e E) bool {
+		last = optional.Of(e)
+		return true
 	})
 	return
 }
@@ -96,32 +126,32 @@ func StringJoin(s Stream[string], sep string) string {
 	)
 }
 
-// First returns the first element in the stream; an empty optional.Optional, if the stream is empty.
-//
-// Example usage:
-//
-//	out := stream.First(stream.Of(1, 2, 3)) // Some(1)
-//	out = stream.First(stream.Empty[int]()) // None()
-func First[E any](s Stream[E]) (first optional.Optional[E]) {
-	first = optional.Empty[E]()
-	s(func(e E) bool {
-		first = optional.Of(e)
-		return false
-	})
-	return
-}
-
-// Last returns the last element in the stream; an empty optional.Optional, if the stream is empty.
-//
-// Example usage:
-//
-//	out := stream.Last(stream.Of(1, 2, 3)) // Some(3)
-//	out = stream.Last(stream.Empty[int]()) // None()
-func Last[E any](s Stream[E]) (last optional.Optional[E]) {
-	last = optional.Empty[E]()
-	s(func(e E) bool {
-		last = optional.Of(e)
+// Cache returns a stream that caches all elements from the given stream.
+// The first call to the returned stream will cache all elements from the given stream (and exhaust it).
+// Subsequent calls to the returned stream will replay the cache.
+func Cache[E any](s Stream[E]) Stream[E] {
+	var cache []E
+	return func(yield Consumer[E]) bool {
+		if cache == nil {
+			// First call to stream caches all elements.
+			cache = []E{}
+			ok := true
+			s(func(e E) bool {
+				cache = append(cache, e)
+				if ok { // Yield until the consumer returns false.
+					ok = yield(e)
+				}
+				return true // Always exhaust the stream for caching.
+			})
+			return ok
+		} else {
+			// Replay from the cache.
+			for _, e := range cache {
+				if !yield(e) {
+					return false
+				}
+			}
+		}
 		return true
-	})
-	return
+	}
 }

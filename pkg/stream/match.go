@@ -108,11 +108,12 @@ func ContainsAnyBy[E any](s Stream[E], compare cmp.Comparer[E], es ...E) bool {
 //	out := stream.ContainsAll(stream.Of(1, 2, 3), 2, 3) // true
 //	out = stream.ContainsAll(stream.Of(1, 2, 3), 2, 4) // false
 func ContainsAll[E comparable](s Stream[E], es ...E) bool {
-	return Count(
-		Distinct(
-			Filter(s, pred.In(es...)),
+	return IsEmpty(
+		Difference(
+			Distinct(FromSlice(es)),
+			Distinct(s),
 		),
-	) == int64(len(es))
+	)
 }
 
 // ContainsAllBy returns true if the stream contains all the given elements; false otherwise.
@@ -123,12 +124,13 @@ func ContainsAll[E comparable](s Stream[E], es ...E) bool {
 //	out := stream.ContainsAllBy(stream.Of(1, 2, 3), cmp.Natural[int](), 2, 3) // true
 //	out = stream.ContainsAllBy(stream.Of(1, 2, 3), cmp.Natural[int](), 2, 4) // false
 func ContainsAllBy[E any](s Stream[E], compare cmp.Comparer[E], es ...E) bool {
-	return Count(
-		DistinctBy(
-			Filter(s, pred.InBy(compare, es...)),
+	return IsEmpty(
+		DifferenceBy(
+			DistinctBy(FromSlice(es), compare),
+			DistinctBy(s, compare),
 			compare,
 		),
-	) == int64(len(es))
+	)
 }
 
 // ContainsNone returns true if the stream contains none of the given elements; false otherwise.

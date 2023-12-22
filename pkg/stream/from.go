@@ -80,8 +80,8 @@ func FromMapKeys[K comparable, V any](m map[K]V) Stream[K] {
 	}
 }
 
-// FromMapValues takes a map and returns a stream of its groups.
-// The order of the groups is not guaranteed.
+// FromMapValues takes a map and returns a stream of its values.
+// The order of the values is not guaranteed.
 //
 // Example usage:
 //

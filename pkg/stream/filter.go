@@ -5,7 +5,7 @@ import (
 )
 
 // Predicate is a function that accepts a value of type E and returns a boolean.
-// It is used to test groups for a given property.
+// It is used to test values for a given property.
 // It must be idempotent, free of side effects, and thread-safe.
 type Predicate[E any] func(e E) (pass bool)
 
@@ -75,7 +75,7 @@ func Skip[E any](s Stream[E], n int64) Stream[E] {
 //	s := stream.Distinct(stream.Of(1, 2, 2, 3))
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func Distinct[E comparable](s Stream[E]) Stream[E] {
-	return distinct(s, newMapGrouper[E, struct{}]())
+	return distinct(s, mapKeyStoreFactory[E, struct{}]())
 }
 
 // DistinctBy returns a stream that only contains distinct elements using the given comparer to compare elements.
@@ -85,12 +85,12 @@ func Distinct[E comparable](s Stream[E]) Stream[E] {
 //	s := stream.DistinctBy(stream.Of(1, 2, 2, 3), cmp.Natural[int]())
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func DistinctBy[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
-	return distinct(s, newSortedGrouper[E, struct{}](compare))
+	return distinct(s, sortedKeyStoreFactory[E, struct{}](compare))
 }
 
-func distinct[E any](s Stream[E], ng newGrouper[E, struct{}]) Stream[E] {
+func distinct[E any](s Stream[E], ksf keyStoreFactory[E, struct{}]) Stream[E] {
 	return func(yield Consumer[E]) bool {
-		seen := ng()
+		seen := ksf()
 		return s(func(e E) bool {
 			if seen.get(e).Present() {
 				return true // Skip.
