@@ -63,10 +63,13 @@ type FlatMapper[E, F any] func(from E) (to Stream[F])
 //
 // Example usage:
 //
-//	s := stream.FlatMap(stream.Of(1, 2, 3), func(e int) stream.Stream[string] {
-//	    return stream.Map(stream.RangeInteger(0, e), mapper.Sprint)
-//	})
-//	out := stream.DebugString(s) // "<0, 0, 1, 0, 1, 2>"
+//	s := stream.FlatMap(
+//	  stream.Of(1, 2, 3),
+//	  func(e int) stream.Stream[string] { // e -> <"e", "e">
+//	    return stream.Of(mapper.Sprint(e), mapper.Sprint(e))
+//	  },
+//	)
+//	out := stream.DebugString(s) // "<1, 1, 2, 2, 3, 3>"
 func FlatMap[E, F any](s Stream[E], fm FlatMapper[E, F]) Stream[F] {
 	return func(yield Consumer[F]) bool {
 		return s(func(e E) bool {
@@ -117,11 +120,11 @@ func SortBy[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
 //
 // Example usage:
 //
-//		s := stream.Truncate(stream.Of("a", "b", "c""), 2, "...")
-//		out := stream.DebugString(s) // "<a, b, ...>"
+//	s := stream.Truncate(stream.Of("a", "b", "c""), 2, "...")
+//	out := stream.DebugString(s) // "<a, b, ...>"
 //
-//	 s = stream.Truncate(stream.Of("a", "b", "c""), 3, "...")
-//		out = stream.DebugString(s) // "<a, b, c>"
+//	s = stream.Truncate(stream.Of("a", "b", "c""), 3, "...")
+//	out = stream.DebugString(s) // "<a, b, c>"
 func Truncate[E any](s Stream[E], length int, tail E) Stream[E] {
 	return func(yield Consumer[E]) bool {
 		i := 0

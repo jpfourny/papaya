@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"github.com/jpfourny/papaya/internal/kvstore"
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/pair"
@@ -22,7 +23,7 @@ import (
 //	)
 //	out := stream.DebugString(s) // "<(foo, [1, 3]), (bar, [2])>"
 func GroupByKey[K comparable, V any](s Stream[pair.Pair[K, V]]) Stream[pair.Pair[K, []V]] {
-	return groupByKey(s, mapKeyStoreFactory[K, []V]())
+	return groupByKey(s, kvstore.MappedMaker[K, []V]())
 }
 
 // GroupBySortedKey returns a stream that values key-value pairs by key using the given cmp.Comparer to compare keys.
@@ -41,19 +42,19 @@ func GroupByKey[K comparable, V any](s Stream[pair.Pair[K, V]]) Stream[pair.Pair
 //	)
 //	out := stream.DebugString(s) // "<(bar, [2]), (foo, [1, 3])>"
 func GroupBySortedKey[K any, V any](s Stream[pair.Pair[K, V]], keyCompare cmp.Comparer[K]) Stream[pair.Pair[K, []V]] {
-	return groupByKey(s, sortedKeyStoreFactory[K, []V](keyCompare))
+	return groupByKey(s, kvstore.SortedMaker[K, []V](keyCompare))
 }
 
-func groupByKey[K any, V any](s Stream[pair.Pair[K, V]], ksf keyStoreFactory[K, []V]) Stream[pair.Pair[K, []V]] {
+func groupByKey[K any, V any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, []V]) Stream[pair.Pair[K, []V]] {
 	return func(yield Consumer[pair.Pair[K, []V]]) bool {
-		groups := ksf()
+		groups := kv()
 		s(func(p pair.Pair[K, V]) bool {
-			g := groups.get(p.First()).OrElse(nil)
+			g := groups.Get(p.First()).OrElse(nil)
 			g = append(g, p.Second())
-			groups.put(p.First(), g)
+			groups.Put(p.First(), g)
 			return true
 		})
-		return groups.forEach(func(k K, vs []V) bool {
+		return groups.ForEach(func(k K, vs []V) bool {
 			return yield(pair.Of(k, vs))
 		})
 	}
@@ -77,7 +78,7 @@ func groupByKey[K any, V any](s Stream[pair.Pair[K, V]], ksf keyStoreFactory[K, 
 //	)
 //	out := stream.DebugString(s) // "<("foo", 4), ("bar", 2)>"
 func ReduceByKey[K comparable, V any](s Stream[pair.Pair[K, V]], reduce Reducer[V]) Stream[pair.Pair[K, V]] {
-	return reduceByKey(s, mapKeyStoreFactory[K, V](), reduce)
+	return reduceByKey(s, kvstore.MappedMaker[K, V](), reduce)
 }
 
 // ReduceBySortedKey returns a stream that reduces key-value pairs by key using the given cmp.Comparer to compare keys and the given Reducer to reduce values.
@@ -99,24 +100,24 @@ func ReduceByKey[K comparable, V any](s Stream[pair.Pair[K, V]], reduce Reducer[
 //	)
 //	out := stream.DebugString(s) // "<("bar", 2), ("foo", 4)>"
 func ReduceBySortedKey[K any, V any](s Stream[pair.Pair[K, V]], keyCompare cmp.Comparer[K], reduce Reducer[V]) Stream[pair.Pair[K, V]] {
-	return reduceByKey(s, sortedKeyStoreFactory[K, V](keyCompare), reduce)
+	return reduceByKey(s, kvstore.SortedMaker[K, V](keyCompare), reduce)
 }
 
-func reduceByKey[K any, V any](s Stream[pair.Pair[K, V]], ksf keyStoreFactory[K, V], reduce Reducer[V]) Stream[pair.Pair[K, V]] {
+func reduceByKey[K any, V any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, V], reduce Reducer[V]) Stream[pair.Pair[K, V]] {
 	return func(yield Consumer[pair.Pair[K, V]]) bool {
-		groups := ksf()
+		groups := kv()
 		s(func(p pair.Pair[K, V]) bool {
-			groups.get(p.First()).IfPresentElse(
+			groups.Get(p.First()).IfPresentElse(
 				func(v V) { // If present
-					groups.put(p.First(), reduce(v, p.Second()))
+					groups.Put(p.First(), reduce(v, p.Second()))
 				},
 				func() { // Else
-					groups.put(p.First(), p.Second())
+					groups.Put(p.First(), p.Second())
 				},
 			)
 			return true
 		})
-		return groups.forEach(func(k K, v V) bool {
+		return groups.ForEach(func(k K, v V) bool {
 			return yield(pair.Of(k, v))
 		})
 	}
@@ -147,7 +148,7 @@ func reduceByKey[K any, V any](s Stream[pair.Pair[K, V]], ksf keyStoreFactory[K,
 //	)
 //	out := stream.DebugString(s) // "<("foo", "4"), ("bar", "2")>"
 func AggregateByKey[K comparable, V, A, F any](s Stream[pair.Pair[K, V]], identity A, accumulate Accumulator[A, V], finish Finisher[A, F]) Stream[pair.Pair[K, F]] {
-	return aggregateByKey(s, mapKeyStoreFactory[K, A](), identity, accumulate, finish)
+	return aggregateByKey(s, kvstore.MappedMaker[K, A](), identity, accumulate, finish)
 }
 
 // AggregateBySortedKey returns a stream that aggregates key-value pairs by key using the given cmp.Comparer to compare keys.
@@ -176,24 +177,24 @@ func AggregateByKey[K comparable, V, A, F any](s Stream[pair.Pair[K, V]], identi
 //	)
 //	out := stream.DebugString(s) // "<("bar", "2"), ("foo", "4")>"
 func AggregateBySortedKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], keyCompare cmp.Comparer[K], identity A, accumulate Accumulator[A, V], finish Finisher[A, F]) Stream[pair.Pair[K, F]] {
-	return aggregateByKey(s, sortedKeyStoreFactory[K, A](keyCompare), identity, accumulate, finish)
+	return aggregateByKey(s, kvstore.SortedMaker[K, A](keyCompare), identity, accumulate, finish)
 }
 
-func aggregateByKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], ksf keyStoreFactory[K, A], identity A, accumulate Accumulator[A, V], finish Finisher[A, F]) Stream[pair.Pair[K, F]] {
+func aggregateByKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, A], identity A, accumulate Accumulator[A, V], finish Finisher[A, F]) Stream[pair.Pair[K, F]] {
 	return func(yield Consumer[pair.Pair[K, F]]) bool {
-		groups := ksf()
+		groups := kv()
 		s(func(p pair.Pair[K, V]) bool {
-			groups.get(p.First()).IfPresentElse(
+			groups.Get(p.First()).IfPresentElse(
 				func(a A) { // If present
-					groups.put(p.First(), accumulate(a, p.Second()))
+					groups.Put(p.First(), accumulate(a, p.Second()))
 				},
 				func() { // Else
-					groups.put(p.First(), accumulate(identity, p.Second()))
+					groups.Put(p.First(), accumulate(identity, p.Second()))
 				},
 			)
 			return true
 		})
-		groups.forEach(func(k K, a A) bool {
+		groups.ForEach(func(k K, a A) bool {
 			return yield(pair.Of(k, finish(a)))
 		})
 		return true
@@ -303,14 +304,14 @@ func MinBySortedKey[K any, V constraint.Ordered](s Stream[pair.Pair[K, V]], keyC
 //
 // Example usage:
 //
-//		s := stream.MaxByKey(
-//	 	stream.Of(
-//		    pair.Of("foo", 1),
-//		    pair.Of("bar", 2),
-//		    pair.Of("foo", 3),
-//		  ),
-//		)
-//		out := stream.DebugString(s) // "<("foo", 3), ("bar", 2)>"
+//	s := stream.MaxByKey(
+//	  stream.Of(
+//	    pair.Of("foo", 1),
+//	    pair.Of("bar", 2),
+//	    pair.Of("foo", 3),
+//	  ),
+//	)
+//	out := stream.DebugString(s) // "<("foo", 3), ("bar", 2)>"
 func MaxByKey[K comparable, V constraint.Ordered](s Stream[pair.Pair[K, V]]) Stream[pair.Pair[K, V]] {
 	return ReduceByKey(
 		s,
@@ -350,14 +351,14 @@ func MaxBySortedKey[K any, V constraint.Ordered](s Stream[pair.Pair[K, V]], keyC
 //
 // Example usage:
 //
-//		s := stream.SumByKey(
-//	 	stream.Of(
-//		    pair.Of("foo", 1),
-//		    pair.Of("bar", 2),
-//		    pair.Of("foo", 3),
-//		  ),
-//		)
-//		out := stream.DebugString(s) // "<("foo", 4), ("bar", 2)>"
+//	s := stream.SumByKey(
+//	  stream.Of(
+//	    pair.Of("foo", 1),
+//	    pair.Of("bar", 2),
+//	    pair.Of("foo", 3),
+//	  ),
+//	)
+//	out := stream.DebugString(s) // "<("foo", 4), ("bar", 2)>"
 func SumByKey[K comparable, V constraint.Numeric](s Stream[pair.Pair[K, V]]) Stream[pair.Pair[K, V]] {
 	return ReduceByKey(
 		s,

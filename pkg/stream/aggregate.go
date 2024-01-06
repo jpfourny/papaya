@@ -25,18 +25,19 @@ type Finisher[A, F any] func(a A) (result F)
 //
 // Example usage:
 //
-//		out := stream.Reduce(
-//		  stream.Of(1, 2, 3),
-//		  func(a, e int) int { // Reduce values by addition.
-//		    return a + e
-//		  },
-//	 ) // Some(6)
-//		out = stream.Reduce(
-//		  stream.Empty[int](),
-//		  func(a, e int) int { // Reduce values by addition.
-//		    return a + e
-//		  },
-//	 ) // None()
+//	out := stream.Reduce(
+//	  stream.Of(1, 2, 3),
+//	  func(a, e int) int { // Reduce values by addition.
+//	    return a + e
+//	  },
+//	) // Some(6)
+//
+//	out = stream.Reduce(
+//	  stream.Empty[int](),
+//	  func(a, e int) int { // Reduce values by addition.
+//	    return a + e
+//	  },
+//	) // None()
 func Reduce[E any](s Stream[E], reduce Reducer[E]) (result optional.Optional[E]) {
 	result = optional.Empty[E]()
 	s(func(e E) bool {
@@ -60,12 +61,12 @@ func Reduce[E any](s Stream[E], reduce Reducer[E]) (result optional.Optional[E])
 //
 //	s := stream.Aggregate(
 //	  stream.Of(1, 2, 3),
-//	  0,                   // Initial value
+//	  0,                 // Initial value
 //	  func(a, e int) int {
-//	      return a + e     // Accumulate with addition
+//	    return a + e     // Accumulate with addition
 //	  },
 //	  func(a int) int {
-//	      return a * 2     // Finish with multiplication by 2
+//	    return a * 2     // Finish with multiplication by 2
 //	  },
 //	) // (1+2+3) * 2 = 12
 func Aggregate[E, A, F any](s Stream[E], identity A, accumulate Accumulator[A, E], finish Finisher[A, F]) F {

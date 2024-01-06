@@ -17,9 +17,13 @@ type Combiner[E1, E2, F any] func(E1, E2) F
 //
 // Example usage:
 //
-//	s := stream.Combine(stream.Of(1, 2, 3), stream.Of("foo", "bar"), func(i int, s string) string {
+//	s := stream.Combine(
+//	  stream.Of(1, 2, 3),
+//	  stream.Of("foo", "bar"),
+//	  func(i int, s string) string {
 //	    return fmt.Sprintf("%s%d", s, i)
-//	})
+//	  },
+//	)
 //	out := stream.DebugString(s) // "<foo1, bar2>"
 func Combine[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine Combiner[E1, E2, F]) Stream[F] {
 	return CombineOrDiscard(s1, s2, func(e1 E1, e2 E2) optional.Optional[F] {
@@ -37,12 +41,16 @@ type OptionalCombiner[E1, E2, F any] func(E1, E2) optional.Optional[F]
 //
 // Example usage:
 //
-//	s := stream.CombineOrDiscard(stream.Of(1, 2, 3), stream.Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+//	s := stream.CombineOrDiscard(
+//	  stream.Of(1, 2, 3),
+//	  stream.Of("foo", "bar"),
+//	  func(i int, s string) optional.Optional[string] {
 //	    if i == 2 {
-//	        return optional.Empty[string]()
+//	      return optional.Empty[string]()
 //	    }
 //	    return optional.Of(fmt.Sprintf("%s%d", s, i))
-//	})
+//	  },
+//	)
 //	out := stream.DebugString(s) // "<foo1>"
 func CombineOrDiscard[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine OptionalCombiner[E1, E2, F]) Stream[F] {
 	return func(yield Consumer[F]) bool {
@@ -129,9 +137,12 @@ type KeyExtractor[E, K any] func(e E) K
 //
 // Example usage:
 //
-//	s := stream.ZipWithKey(stream.Of("foo", "bar"), func(s string) string {
+//	s := stream.ZipWithKey(
+//	  stream.Of("foo", "bar"),
+//	  func(s string) string {
 //	    return strings.ToUpper(s)
-//	})
+//	  },
+//	)
 //	out := stream.DebugString(s) // "<(FOO, foo), (BAR, bar)>"
 func ZipWithKey[K, E any](s Stream[E], ke KeyExtractor[E, K]) Stream[pair.Pair[K, E]] {
 	return Map(s, func(e E) pair.Pair[K, E] {

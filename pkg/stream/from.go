@@ -107,9 +107,9 @@ func FromMapValues[K comparable, V any](m map[K]V) Stream[V] {
 //
 //	ch := make(chan int)
 //	go func() {
-//	    ch <- 1
-//	    ch <- 2
-//	    close(ch)
+//	  ch <- 1
+//	  ch <- 2
+//	  close(ch)
 //	}()
 //	s := stream.FromChannel(ch)
 //	out := stream.DebugString(s) // "<1, 2>"
@@ -132,9 +132,9 @@ func FromChannel[E any](ch <-chan E) Stream[E] {
 //
 //	ch := make(chan int)
 //	go func() {
-//	    ch <- 1
-//	    ch <- 2
-//	    close(ch)
+//	  ch <- 1
+//	  ch <- 2
+//	  close(ch)
 //	}()
 //	s := stream.FromChannelCtx(ctx, ch)
 //	out := stream.DebugString(s) // "<1, 2>"

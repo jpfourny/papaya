@@ -12,15 +12,15 @@ type Iterator[E any] func() optional.Optional[E]
 //
 // Example usage:
 //
-//	 i := 0
-//		s := stream.Iterate(func() optional.Optional[int] {
-//		    if i < 3 {
-//		        i++
-//		        return optional.Of(i)
-//		    }
-//		    return optional.Empty[int]()
-//		})
-//		out := stream.DebugString(s) // "<1, 2, 3>"
+//	i := 0
+//	s := stream.Iterate(func() optional.Optional[int] {
+//	  if i < 3 {
+//	    i++
+//	    return optional.Of(i)
+//	  }
+//	  return optional.Empty[int]()
+//	})
+//	out := stream.DebugString(s) // "<1, 2, 3>"
 func Iterate[E any](next Iterator[E]) Stream[E] {
 	return func(yield Consumer[E]) bool {
 		for e := next(); e.Present(); e = next() {

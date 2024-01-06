@@ -78,7 +78,7 @@ func Last[E any](s Stream[E]) (last optional.Optional[E]) {
 // Example usage:
 //
 //	s := stream.Peek(stream.Of(1, 2, 3), func(e int) {
-//	    fmt.Println(e)
+//	  fmt.Println(e)
 //	})
 //	stream.Count(s) // Force the stream to materialize.
 //

@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"github.com/jpfourny/papaya/internal/kvstore"
 	"github.com/jpfourny/papaya/pkg/cmp"
 )
 
@@ -14,7 +15,7 @@ type Predicate[E any] func(e E) (pass bool)
 // Example usage:
 //
 //	s := stream.Filter(stream.Of(1, 2, 3), func(e int) bool {
-//	    return e % 2 == 0
+//	  return e % 2 == 0
 //	})
 //	out := stream.DebugString(s) // "<2>"
 func Filter[E any](s Stream[E], p Predicate[E]) Stream[E] {
@@ -75,7 +76,7 @@ func Skip[E any](s Stream[E], n int64) Stream[E] {
 //	s := stream.Distinct(stream.Of(1, 2, 2, 3))
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func Distinct[E comparable](s Stream[E]) Stream[E] {
-	return distinct(s, mapKeyStoreFactory[E, struct{}]())
+	return distinct(s, kvstore.MappedMaker[E, struct{}]())
 }
 
 // DistinctBy returns a stream that only contains distinct elements using the given comparer to compare elements.
@@ -85,17 +86,17 @@ func Distinct[E comparable](s Stream[E]) Stream[E] {
 //	s := stream.DistinctBy(stream.Of(1, 2, 2, 3), cmp.Natural[int]())
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func DistinctBy[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
-	return distinct(s, sortedKeyStoreFactory[E, struct{}](compare))
+	return distinct(s, kvstore.SortedMaker[E, struct{}](compare))
 }
 
-func distinct[E any](s Stream[E], ksf keyStoreFactory[E, struct{}]) Stream[E] {
+func distinct[E any](s Stream[E], kv kvstore.Maker[E, struct{}]) Stream[E] {
 	return func(yield Consumer[E]) bool {
-		seen := ksf()
+		seen := kv()
 		return s(func(e E) bool {
-			if seen.get(e).Present() {
+			if seen.Get(e).Present() {
 				return true // Skip.
 			}
-			seen.put(e, struct{}{})
+			seen.Put(e, struct{}{})
 			return yield(e)
 		})
 	}

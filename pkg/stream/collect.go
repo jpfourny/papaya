@@ -105,7 +105,7 @@ func CollectChannelCtx[E any](ctx context.Context, s Stream[E], ch chan<- E) {
 //
 //	ch := stream.CollectChannelAsync(stream.Of(1, 2, 3), 3)
 //	for e := range ch {
-//	    fmt.Println(e)
+//	  fmt.Println(e)
 //	}
 //
 // Output:
@@ -133,7 +133,7 @@ func CollectChannelAsync[E any](s Stream[E], buf int) <-chan E {
 //	ctx := context.Background()
 //	ch := stream.CollectChannelAsyncCtx(ctx, stream.Of(1, 2, 3), 3)
 //	for e := range ch {
-//	    fmt.Println(e)
+//	  fmt.Println(e)
 //	}
 //
 // Output:
