@@ -113,16 +113,16 @@ func TestZip(t *testing.T) {
 	})
 }
 
-func TestZipWithIndexInt(t *testing.T) {
+func TestZipWithIndex(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		s := ZipWithIndexInt(Empty[int](), 0)
+		s := ZipWithIndex(Empty[int](), 0)
 		got := CollectSlice(s)
 		var want []pair.Pair[int, int]
 		assert.ElementsMatch(t, got, want)
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		s := ZipWithIndexInt(Of(1, 2, 3), 0)
+		s := ZipWithIndex(Of(1, 2, 3), 0)
 		got := CollectSlice(s)
 		want := []pair.Pair[int, int]{
 			pair.Of(1, 0),
@@ -133,7 +133,7 @@ func TestZipWithIndexInt(t *testing.T) {
 	})
 
 	t.Run("non-zero-offset", func(t *testing.T) {
-		s := ZipWithIndexInt(Of(1, 2, 3), -1)
+		s := ZipWithIndex(Of(1, 2, 3), -1)
 		got := CollectSlice(s)
 		want := []pair.Pair[int, int]{
 			pair.Of(1, -1),
@@ -144,52 +144,11 @@ func TestZipWithIndexInt(t *testing.T) {
 	})
 
 	t.Run("limited", func(t *testing.T) {
-		s := ZipWithIndexInt(Of(1, 2, 3), 0)
+		s := ZipWithIndex(Of(1, 2, 3), 0)
 		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
 		want := []pair.Pair[int, int]{
 			pair.Of(1, 0),
 			pair.Of(2, 1),
-		}
-		assert.ElementsMatch(t, got, want)
-	})
-}
-
-func TestZipWithIndexInt64(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		s := ZipWithIndexInt64(Empty[int](), 0)
-		got := CollectSlice(s)
-		var want []pair.Pair[int, int64]
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		s := ZipWithIndexInt64(Of(1, 2, 3), 0)
-		got := CollectSlice(s)
-		want := []pair.Pair[int, int64]{
-			pair.Of(1, int64(0)),
-			pair.Of(2, int64(1)),
-			pair.Of(3, int64(2)),
-		}
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("non-zero-offset", func(t *testing.T) {
-		s := ZipWithIndexInt64(Of(1, 2, 3), -1)
-		got := CollectSlice(s)
-		want := []pair.Pair[int, int64]{
-			pair.Of(1, int64(-1)),
-			pair.Of(2, int64(0)),
-			pair.Of(3, int64(1)),
-		}
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("limited", func(t *testing.T) {
-		s := ZipWithIndexInt64(Of(1, 2, 3), 0)
-		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
-		want := []pair.Pair[int, int64]{
-			pair.Of(1, int64(0)),
-			pair.Of(2, int64(1)),
 		}
 		assert.ElementsMatch(t, got, want)
 	})
