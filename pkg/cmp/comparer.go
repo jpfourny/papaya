@@ -2,6 +2,7 @@ package cmp
 
 import (
 	stdcmp "cmp"
+	"golang.org/x/text/collate"
 	"time"
 
 	"github.com/jpfourny/papaya/pkg/constraint"
@@ -202,6 +203,30 @@ func Complex128() Comparer[complex128] {
 		} else {
 			return 0
 		}
+	}
+}
+
+// CollateString returns a Comparer that compares two values of type string using the provided collate.Collator.
+//
+// Example:
+//
+//	s := []string{"foo", "bar", "baz"}
+//	sort.Slice(s, cmp.CollateString(collate.New(language.English))) // ["bar", "baz", "foo"]
+func CollateString(col *collate.Collator) Comparer[string] {
+	return func(a, b string) int {
+		return col.CompareString(a, b)
+	}
+}
+
+// CollateBytes returns a Comparer that compares two values of type []byte using the provided collate.Collator.
+//
+// Example:
+//
+//	s := [][]byte{[]byte("foo"), []byte("bar"), []byte("baz")}
+//	sort.Slice(s, cmp.CollateBytes(collate.New(language.English))) // [[]byte("bar"), []byte("baz"), []byte("foo")]
+func CollateBytes(col *collate.Collator) Comparer[[]byte] {
+	return func(a, b []byte) int {
+		return col.Compare(a, b)
 	}
 }
 

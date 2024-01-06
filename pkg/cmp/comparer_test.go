@@ -1,6 +1,8 @@
 package cmp
 
 import (
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 	"strings"
 	"testing"
 	"time"
@@ -130,6 +132,32 @@ func TestTime(t *testing.T) {
 	}
 	if c(time.Unix(0, 0), time.Unix(0, 0)) != 0 {
 		t.Errorf("Time()(time.Unix(0, 0), time.Unix(0, 0)): expected 0, got %d", c(time.Unix(0, 0), time.Unix(0, 0)))
+	}
+}
+
+func TestCollateString(t *testing.T) {
+	c := CollateString(collate.New(language.English))
+	if c("a", "b") != -1 {
+		t.Errorf("CollateString()(\"a\", \"b\"): expected -1, got %d", c("a", "b"))
+	}
+	if c("b", "a") != 1 {
+		t.Errorf("CollateString()(\"b\", \"a\"): expected 1, got %d", c("b", "a"))
+	}
+	if c("a", "a") != 0 {
+		t.Errorf("CollateString()(\"a\", \"a\"): expected 0, got %d", c("a", "a"))
+	}
+}
+
+func TestCollateBytes(t *testing.T) {
+	c := CollateBytes(collate.New(language.English))
+	if c([]byte("a"), []byte("b")) != -1 {
+		t.Errorf("CollateBytes()([]byte(\"a\"), []byte(\"b\")): expected -1, got %d", c([]byte("a"), []byte("b")))
+	}
+	if c([]byte("b"), []byte("a")) != 1 {
+		t.Errorf("CollateBytes()([]byte(\"b\"), []byte(\"a\")): expected 1, got %d", c([]byte("b"), []byte("a")))
+	}
+	if c([]byte("a"), []byte("a")) != 0 {
+		t.Errorf("CollateBytes()([]byte(\"a\"), []byte(\"a\")): expected 0, got %d", c([]byte("a"), []byte("a")))
 	}
 }
 
