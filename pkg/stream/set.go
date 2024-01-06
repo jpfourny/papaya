@@ -1,5 +1,7 @@
 package stream
 
+import "github.com/jpfourny/papaya/pkg/cmp"
+
 // Union combines multiple streams into a single stream (concatenation).
 // The length of the resulting stream is the sum of the lengths of the input streams.
 // If any of the input streams return false when invoked with the consumer, the concatenation stops.
@@ -19,34 +21,84 @@ func Union[E any](ss ...Stream[E]) Stream[E] {
 	}
 }
 
-// Intersection returns a stream that contains elements that are in all the given streams.
+// Intersection returns a stream that contains elements that are in the given streams.
+// The element type E must be comparable.
 // The order of the elements is not guaranteed.
 //
 // Example usage:
 //
-//	s := stream.Intersection(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6), stream.Of(4, 5))
+//	s := stream.Intersection(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6))
 //	out := stream.DebugString(s) // "<4, 5>"
-func Intersection[E comparable](ss ...Stream[E]) Stream[E] {
+func Intersection[E comparable](s1, s2 Stream[E]) Stream[E] {
+	return intersection(s1, s2, mapKeyStoreFactory[E, struct{}]())
+}
+
+// IntersectionAll returns a stream that contains elements that are in all the given streams.
+// The element type E must be comparable.
+// The order of the elements is not guaranteed.
+//
+// Example usage:
+//
+//	s := stream.IntersectionAll(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6), stream.Of(4, 5, 7))
+//	out := stream.DebugString(s) // "<4, 5>"
+func IntersectionAll[E comparable](ss ...Stream[E]) Stream[E] {
 	switch {
-	case len(ss) == 0:
-		return Empty[E]() // No streams.
-	case len(ss) == 1:
-		return ss[0] // One stream.
-	case len(ss) > 2:
-		// Recursively intersect the first stream with the intersection of rest.
-		return Intersection(ss[0], Intersection(ss[1:]...))
+	case len(ss) == 0: // No streams; result is empty.
+		return Empty[E]()
+	case len(ss) == 1: // One stream; result is the same stream.
+		return ss[0]
+	case len(ss) > 2: // More than 2 streams; recursively intersect stream pairs.
+		return Intersection(ss[0], IntersectionAll(ss[1:]...))
 	}
 
+	// Exactly 2 streams; intersect ss[0] and ss[1].
+	return Intersection(ss[0], ss[1])
+}
+
+// IntersectionBy returns a stream that contains elements that are in the given streams, compared by the given cmp.Comparer.
+// The order of the elements is determined by the comparer.
+//
+// Example usage:
+//
+//	s := stream.IntersectionBy(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6), cmp.Natural[int]())
+//	out := stream.DebugString(s) // "<4, 5>"
+func IntersectionBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) Stream[E] {
+	return intersection(s1, s2, sortedKeyStoreFactory[E, struct{}](compare))
+}
+
+// IntersectionAllBy returns a stream that contains elements that are in all the given streams, compared by the given cmp.Comparer.
+// The order of the elements is determined by the comparer.
+//
+// Example usage:
+//
+//	s := stream.IntersectionAllBy(cmp.Natural[int](), stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6), stream.Of(4, 5, 7))
+//	out := stream.DebugString(s) // "<4, 5>"
+func IntersectionAllBy[E any](compare cmp.Comparer[E], ss ...Stream[E]) Stream[E] {
+	switch {
+	case len(ss) == 0: // No streams; result is empty.
+		return Empty[E]()
+	case len(ss) == 1: // One stream; result is the same stream.
+		return ss[0]
+	case len(ss) > 2: // More than 2 streams; recursively intersect stream pairs.
+		return IntersectionBy(ss[0], IntersectionAllBy(compare, ss[1:]...), compare)
+	}
+
+	// Exactly 2 streams; intersect ss[0] and ss[1].
+	return IntersectionBy(ss[0], ss[1], compare)
+}
+
+func intersection[E any](s1, s2 Stream[E], ksf keyStoreFactory[E, struct{}]) Stream[E] {
+	// Exactly 2 streams; intersect ss[0] and ss[1].
 	return func(yield Consumer[E]) bool {
 		// Index elements of the first stream into a set.
-		seen := make(map[E]struct{})
-		ss[0](func(e E) bool {
-			seen[e] = struct{}{}
+		seen := ksf()
+		s1(func(e E) bool {
+			seen.put(e, struct{}{})
 			return true
 		})
 		// Yield elements of the second stream that are in the set.
-		return ss[1](func(e E) bool {
-			if _, ok := seen[e]; ok {
+		return s2(func(e E) bool {
+			if seen.get(e).Present() {
 				return yield(e)
 			}
 			return true
@@ -55,6 +107,7 @@ func Intersection[E comparable](ss ...Stream[E]) Stream[E] {
 }
 
 // Difference returns a stream that contains elements that are in the first stream but not in the second stream.
+// The element type E must be comparable.
 // The order of the elements is not guaranteed.
 //
 // Example usage:
@@ -62,16 +115,31 @@ func Intersection[E comparable](ss ...Stream[E]) Stream[E] {
 //	s := stream.Difference(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6))
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func Difference[E comparable](s1, s2 Stream[E]) Stream[E] {
+	return difference(s1, s2, mapKeyStoreFactory[E, struct{}]())
+}
+
+// DifferenceBy returns a stream that contains elements that are in the first stream but not in the second stream, compared by the given cmp.Comparer.
+// The order of the elements is determined by the comparer.
+//
+// Example usage:
+//
+//	s := stream.DifferenceBy(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6), cmp.Natural[int]())
+//	out := stream.DebugString(s) // "<1, 2, 3>"
+func DifferenceBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) Stream[E] {
+	return difference(s1, s2, sortedKeyStoreFactory[E, struct{}](compare))
+}
+
+func difference[E any](s1, s2 Stream[E], ksf keyStoreFactory[E, struct{}]) Stream[E] {
 	return func(yield Consumer[E]) bool {
 		// Index elements of the second stream into a set.
-		seen := make(map[E]struct{})
+		seen := ksf()
 		s2(func(e E) bool {
-			seen[e] = struct{}{}
+			seen.put(e, struct{}{})
 			return true
 		})
 		// Yield elements of the first stream that are not in the set.
 		return s1(func(e E) bool {
-			if _, ok := seen[e]; !ok {
+			if !seen.get(e).Present() {
 				return yield(e)
 			}
 			return true

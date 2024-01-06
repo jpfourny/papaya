@@ -33,6 +33,12 @@ func TestDebugString(t *testing.T) {
 	if got != want {
 		t.Errorf("got %#v, want %#v", got, want)
 	}
+
+	got = DebugString(Generate(func() int { return 1 })) // Infinite stream will be truncated to 100 elements (+ tailing ...).
+	want = "<1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...>"
+	if got != want {
+		t.Errorf("got %#v, want %#v", got, want)
+	}
 }
 
 func TestIsEmpty(t *testing.T) {
@@ -84,5 +90,36 @@ func TestLast(t *testing.T) {
 		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
+	})
+}
+
+func TestCache(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := Cache(Empty[int]())
+		got := CollectSlice(s)
+		var want []int
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := Cache(Of(1, 2, 3))
+		got := CollectSlice(s)
+		want := []int{1, 2, 3}
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := Cache(Of(1, 2, 3))
+		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
+		want := []int{1, 2}
+		assert.ElementsMatch(t, got, want)
+
+		got = CollectSlice(s) // Replay from cache without the limit.
+		want = []int{1, 2, 3} // Despite limit from first call to stream, cache has all elements.
+		assert.ElementsMatch(t, got, want)
+
+		got = CollectSlice(Limit(s, 1)) // Stops stream after 1 elements.
+		want = []int{1}                 // Limit is applied to the cache.
+		assert.ElementsMatch(t, got, want)
 	})
 }

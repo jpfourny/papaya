@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"github.com/jpfourny/papaya/pkg/cmp"
 	"testing"
 
 	"github.com/jpfourny/papaya/internal/assert"
@@ -12,22 +13,6 @@ func TestFilter(t *testing.T) {
 	})
 	got := CollectSlice(s)
 	want := []int{2, 4}
-	assert.ElementsMatch(t, got, want)
-}
-
-func TestDistinct(t *testing.T) {
-	s := Distinct(Of(1, 2, 3, 2, 1))
-	got := CollectSlice(s)
-	want := []int{1, 2, 3}
-	assert.ElementsMatch(t, got, want)
-}
-
-func TestDistinctBy(t *testing.T) {
-	s := DistinctBy(Of(1, 2, 3, 2, 1), func(e int) int {
-		return e % 2
-	})
-	got := CollectSlice(s)
-	want := []int{1, 2}
 	assert.ElementsMatch(t, got, want)
 }
 
@@ -82,4 +67,18 @@ func TestSkip(t *testing.T) {
 		var want []int
 		assert.ElementsMatch(t, got, want)
 	})
+}
+
+func TestDistinct(t *testing.T) {
+	s := Distinct(Of(1, 2, 3, 2, 1))
+	got := CollectSlice(s)
+	want := []int{1, 2, 3}
+	assert.ElementsMatch(t, got, want)
+}
+
+func TestDistinctBy(t *testing.T) {
+	s := DistinctBy(Of(1, 2, 3, 2, 1), cmp.Natural[int]())
+	got := CollectSlice(s)
+	want := []int{1, 2, 3}
+	assert.ElementsMatch(t, got, want)
 }

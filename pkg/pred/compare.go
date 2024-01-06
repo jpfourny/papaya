@@ -44,9 +44,9 @@ func NotEqual[E comparable](want E) func(E) bool {
 //	p := pred.EqualBy(0, cmp.Natural[int])
 //	p(0) // true
 //	p(1) // false
-func EqualBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
+func EqualBy[E any](want E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
-		return cmp(got, want) == 0
+		return compare.Equal(got, want)
 	}
 }
 
@@ -58,9 +58,9 @@ func EqualBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
 //	p := pred.NotEqualBy(0, cmp.Natural[int])
 //	p(0) // false
 //	p(1) // true
-func NotEqualBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
+func NotEqualBy[E any](want E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
-		return cmp(got, want) != 0
+		return compare.NotEqual(got, want)
 	}
 }
 
@@ -161,9 +161,9 @@ func GreaterThanOrEqual[E constraint.Ordered](want E) func(E) bool {
 //	p(-1) // true
 //	p(0) // false
 //	p(1) // false
-func LessThanBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
+func LessThanBy[E any](want E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
-		return cmp(got, want) < 0
+		return compare.LessThan(got, want)
 	}
 }
 
@@ -176,9 +176,9 @@ func LessThanBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
 //	p(-1) // true
 //	p(0) // true
 //	p(1) // false
-func LessThanOrEqualBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
+func LessThanOrEqualBy[E any](want E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
-		return cmp(got, want) <= 0
+		return compare.LessThanOrEqual(got, want)
 	}
 }
 
@@ -191,9 +191,9 @@ func LessThanOrEqualBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
 //	p(-1) // false
 //	p(0) // false
 //	p(1) // true
-func GreaterThanBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
+func GreaterThanBy[E any](want E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
-		return cmp(got, want) > 0
+		return compare.GreaterThan(got, want)
 	}
 }
 
@@ -206,9 +206,9 @@ func GreaterThanBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
 //	p(-1) // false
 //	p(0) // true
 //	p(1) // true
-func GreaterThanOrEqualBy[E any](want E, cmp cmp.Comparer[E]) func(E) bool {
+func GreaterThanOrEqualBy[E any](want E, compare cmp.Comparer[E]) func(E) bool {
 	return func(got E) bool {
-		return cmp(got, want) >= 0
+		return compare.GreaterThanOrEqual(got, want)
 	}
 }
 

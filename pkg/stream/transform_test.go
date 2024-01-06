@@ -54,6 +54,34 @@ func TestSortBy(t *testing.T) {
 	assert.ElementsMatch(t, got, want)
 }
 
+func TestTruncate(t *testing.T) {
+	s := Truncate(Of("a", "b", "c"), 4, "...")
+	got := CollectSlice(s)
+	want := []string{"a", "b", "c"}
+	assert.ElementsMatch(t, got, want)
+
+	s = Truncate(Of("a", "b", "c"), 3, "...")
+	got = CollectSlice(s)
+	want = []string{"a", "b", "c"}
+	assert.ElementsMatch(t, got, want)
+
+	s = Truncate(Of("a", "b", "c"), 2, "...")
+	got = CollectSlice(s)
+	want = []string{"a", "b", "..."}
+
+	s = Truncate(Of("a", "b", "c"), 1, "...")
+	got = CollectSlice(s)
+	want = []string{"a", "..."}
+
+	s = Truncate(Of("a", "b", "c"), 0, "...")
+	got = CollectSlice(s)
+	want = []string{"..."}
+
+	s = Truncate(Empty[string](), 1, "...")
+	got = CollectSlice(s)
+	want = []string{}
+}
+
 func TestPadTail(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		s := PadTail(Of[int](), 0, 5)

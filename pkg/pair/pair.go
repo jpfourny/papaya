@@ -1,6 +1,8 @@
 package pair
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Pair represents a pair of two values.
 // It is a generic type that takes two type parameters A and B.

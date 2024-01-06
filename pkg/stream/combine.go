@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/mapper"
 	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
@@ -103,39 +104,25 @@ func Zip[E, F any](s1 Stream[E], s2 Stream[F]) Stream[pair.Pair[E, F]] {
 	})
 }
 
-// ZipWithIndexInt returns a stream that pairs each element in the input stream with its index, starting at the given offset.
-// The index is of type int.
+// ZipWithIndex returns a stream that pairs each element in the input stream with its index, starting at the given offset.
+// The index type I must be an integer type.
 //
 // Example usage:
 //
-//	s := stream.ZipWithIndexInt(stream.Of("foo", "bar"), 1)
+//	s := stream.ZipWithIndex(stream.Of("foo", "bar"), 1)
 //	out := stream.DebugString(s) // "<(foo, 1), (bar, 2)>"
-func ZipWithIndexInt[E any](s Stream[E], offset int) Stream[pair.Pair[E, int]] {
+func ZipWithIndex[E any, I constraint.Integer](s Stream[E], offset I) Stream[pair.Pair[E, I]] {
 	return Combine(
 		s,
-		Range(offset, pred.True[int](), mapper.Increment(1)),
-		func(e E, i int) pair.Pair[E, int] {
+		Range[I](offset, pred.True[I](), mapper.Increment[I](1)),
+		func(e E, i I) pair.Pair[E, I] {
 			return pair.Of(e, i)
 		},
 	)
 }
 
-// ZipWithIndexInt64 returns a stream that pairs each element in the input stream with its index, starting at the given offset.
-// The index is of type int64.
-//
-// Example usage:
-//
-//	s := stream.ZipWithIndexInt64(stream.Of("foo", "bar"), 1)
-//	out := stream.DebugString(s) // "<(foo, 1), (bar, 2)>"
-func ZipWithIndexInt64[E any](s Stream[E], offset int64) Stream[pair.Pair[E, int64]] {
-	return Combine(
-		s,
-		Range(offset, pred.True[int64](), mapper.Increment(int64(1))),
-		func(e E, i int64) pair.Pair[E, int64] {
-			return pair.Of(e, i)
-		},
-	)
-}
+// KeyExtractor represents a function that extracts a key of type K from a value of type E.
+type KeyExtractor[E, K any] func(e E) K
 
 // ZipWithKey returns a stream that pairs each element in the input stream with the key extracted from the element using the given key extractor.
 // The resulting stream will have the same number of elements as the input stream.
@@ -146,7 +133,7 @@ func ZipWithIndexInt64[E any](s Stream[E], offset int64) Stream[pair.Pair[E, int
 //	    return strings.ToUpper(s)
 //	})
 //	out := stream.DebugString(s) // "<(FOO, foo), (BAR, bar)>"
-func ZipWithKey[E any, K any](s Stream[E], ke KeyExtractor[E, K]) Stream[pair.Pair[K, E]] {
+func ZipWithKey[K, E any](s Stream[E], ke KeyExtractor[E, K]) Stream[pair.Pair[K, E]] {
 	return Map(s, func(e E) pair.Pair[K, E] {
 		return pair.Of(ke(e), e)
 	})

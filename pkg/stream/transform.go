@@ -103,11 +103,36 @@ func SortDesc[E constraint.Ordered](s Stream[E]) Stream[E] {
 //
 //	s := stream.SortBy(stream.Of(3, 1, 2), cmp.Natural[int]())
 //	out := stream.DebugString(s) // "<1, 2, 3>"
-func SortBy[E any](s Stream[E], cmp cmp.Comparer[E]) Stream[E] {
+func SortBy[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
 	return func(yield Consumer[E]) bool {
 		sl := CollectSlice(s)
-		slices.SortFunc(sl, cmp)
+		slices.SortFunc(sl, compare)
 		return FromSlice(sl)(yield)
+	}
+}
+
+// Truncate returns a stream that limits the given stream to the desired length and appends the given 'tail' value, if the stream is longer than the desired length.
+// The tail value is appended only once, even if the stream is longer than the desired.
+// If the stream is already shorter than the desired length, then the stream is returned as-is.
+//
+// Example usage:
+//
+//		s := stream.Truncate(stream.Of("a", "b", "c""), 2, "...")
+//		out := stream.DebugString(s) // "<a, b, ...>"
+//
+//	 s = stream.Truncate(stream.Of("a", "b", "c""), 3, "...")
+//		out = stream.DebugString(s) // "<a, b, c>"
+func Truncate[E any](s Stream[E], length int, tail E) Stream[E] {
+	return func(yield Consumer[E]) bool {
+		i := 0
+		return s(func(e E) bool {
+			i++
+			if i <= length {
+				return yield(e)
+			}
+			yield(tail)
+			return false // Stop after the tail.
+		})
 	}
 }
 
