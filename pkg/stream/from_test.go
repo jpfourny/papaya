@@ -33,6 +33,29 @@ func TestFromSlice(t *testing.T) {
 	})
 }
 
+func TestFromSliceBackwards(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := FromSliceBackwards([]int{})
+		got := CollectSlice(s)
+		var want []int
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := FromSliceBackwards([]int{1, 2, 3})
+		got := CollectSlice(s)
+		want := []int{3, 2, 1}
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := FromSliceBackwards([]int{1, 2, 3})
+		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
+		want := []int{3, 2}
+		assert.ElementsMatch(t, got, want)
+	})
+}
+
 func TestFromSliceWithIndex(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		s := FromSliceWithIndex([]int{})
@@ -59,6 +82,36 @@ func TestFromSliceWithIndex(t *testing.T) {
 		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
 		want := []pair.Pair[int, int]{
 			pair.Of(0, 1),
+			pair.Of(1, 2),
+		}
+		assert.ElementsMatch(t, got, want)
+	})
+}
+
+func TestFromSliceWithIndexBackwards(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := FromSliceWithIndexBackwards([]int{})
+		got := CollectSlice(s)
+		var want []pair.Pair[int, int]
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := FromSliceWithIndexBackwards([]int{1, 2, 3})
+		got := CollectSlice(s)
+		want := []pair.Pair[int, int]{
+			pair.Of(2, 3),
+			pair.Of(1, 2),
+			pair.Of(0, 1),
+		}
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := FromSliceWithIndexBackwards([]int{1, 2, 3})
+		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
+		want := []pair.Pair[int, int]{
+			pair.Of(2, 3),
 			pair.Of(1, 2),
 		}
 		assert.ElementsMatch(t, got, want)

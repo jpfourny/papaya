@@ -24,6 +24,24 @@ func FromSlice[E any](s []E) Stream[E] {
 	}
 }
 
+// FromSliceBackwards creates a stream that iterates over the elements of the given slice in reverse order.
+// The order of the elements is guaranteed to be the same as the order in the slice (but backwards).
+//
+// Example usage:
+//
+//	s := stream.FromSliceBackwards([]int{1, 2, 3})
+//	out := stream.DebugString(s) // "<3, 2, 1>"
+func FromSliceBackwards[E any](s []E) Stream[E] {
+	return func(yield Consumer[E]) bool {
+		for i := len(s) - 1; i >= 0; i-- {
+			if !yield(s[i]) {
+				return false // Consumer saw enough.
+			}
+		}
+		return true
+	}
+}
+
 // FromSliceWithIndex returns a stream that iterates over the elements of the input slice along with their indices.
 // The stream returns a `pair.Pair` with both the index and the value of each element.
 // The order of the elements is guaranteed to be the same as the order in the slice.
@@ -36,6 +54,25 @@ func FromSliceWithIndex[E any](s []E) Stream[pair.Pair[int, E]] {
 	return func(yield Consumer[pair.Pair[int, E]]) bool {
 		for i, e := range s {
 			if !yield(pair.Of(i, e)) {
+				return false // Consumer saw enough.
+			}
+		}
+		return true
+	}
+}
+
+// FromSliceWithIndexBackwards returns a stream that iterates over the elements of the input slice along with their indices in reverse order.
+// The stream returns a `pair.Pair` with both the index and the value of each element.
+// The order of the elements is guaranteed to be the same as the order in the slice (but backwards).
+//
+// Example usage:
+//
+//	s := stream.FromSliceWithIndexBackwards([]int{1, 2, 3})
+//	out := stream.DebugString(s) // "<(2, 3), (1, 2), (0, 1)>"
+func FromSliceWithIndexBackwards[E any](s []E) Stream[pair.Pair[int, E]] {
+	return func(yield Consumer[pair.Pair[int, E]]) bool {
+		for i := len(s) - 1; i >= 0; i-- {
+			if !yield(pair.Of(i, s[i])) {
 				return false // Consumer saw enough.
 			}
 		}
