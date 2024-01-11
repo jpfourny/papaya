@@ -24,6 +24,9 @@ type Optional[V any] interface {
 	// OrElse returns the value contained in the Optional if the Optional is not empty, or the provided value otherwise.
 	OrElse(V) V
 
+	// OrElseZero returns the value contained in the Optional if the Optional is not empty, or the zero value of type V otherwise.
+	OrElseZero() V
+
 	// OrElseGet returns the value contained in the Optional if the Optional is not empty, or the result of the provided function otherwise.
 	OrElseGet(func() V) V
 }
@@ -52,6 +55,11 @@ func (n None[V]) IfPresentElse(_ func(V), f func()) bool {
 
 func (n None[V]) OrElse(v V) V {
 	return v
+}
+
+func (n None[V]) OrElseZero() V {
+	var zero V
+	return zero
 }
 
 func (n None[V]) OrElseGet(f func() V) V {
@@ -85,6 +93,10 @@ func (s Some[V]) OrElse(V) V {
 	return s.Value
 }
 
+func (s Some[V]) OrElseZero() V {
+	return s.Value
+}
+
 func (s Some[V]) OrElseGet(_ func() V) V {
 	return s.Value
 }
@@ -113,4 +125,25 @@ func Maybe[V any](value V, ok bool) Optional[V] {
 // Empty returns an empty Optional.
 func Empty[V any]() Optional[V] {
 	return None[V]{}
+}
+
+// Map returns an Optional containing the result of applying the provided function to the value contained in the provided Optional.
+// If the provided Optional is empty, an empty Optional is returned.
+//
+// Example usage:
+//
+//	o := optional.Map(
+//	  optional.Of(1),
+//	  func(i int) string { return fmt.Sprintf("%d", i) },
+//	) // optional.Some("1")
+//
+//	o = optional.Map(
+//	  optional.Empty[int](),
+//	  func(i int) string { return fmt.Sprintf("%d", i) },
+//	) // optional.None()
+func Map[V, U any](o Optional[V], mapper func(V) U) Optional[U] {
+	if o.Present() {
+		return Of(mapper(o.Get()))
+	}
+	return Empty[U]()
 }

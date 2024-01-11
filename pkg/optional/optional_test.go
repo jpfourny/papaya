@@ -46,6 +46,27 @@ func TestEmpty(t *testing.T) {
 	}
 }
 
+func TestMap(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+		m := Map(o, func(i int) string { return "foo" })
+		if !m.Present() {
+			t.Errorf("expected Present() to be true")
+		}
+		if m.Get() != "foo" {
+			t.Errorf("expected Get() to return %q", "foo")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		m := Map(o, func(i int) string { return "foo" })
+		if m.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+	})
+}
+
 func TestIfPresent(t *testing.T) {
 	t.Run("Some", func(t *testing.T) {
 		var called bool
@@ -116,6 +137,22 @@ func TestOrElse(t *testing.T) {
 		o := Empty[int]()
 		if o.OrElse(0) != 0 {
 			t.Errorf("expected OrElse to return 0")
+		}
+	})
+}
+
+func TestOrElseZero(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+		if o.OrElseZero() != 42 {
+			t.Errorf("expected OrElseZero to return 42")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		if o.OrElseZero() != 0 {
+			t.Errorf("expected OrElseZero to return 0")
 		}
 	})
 }
