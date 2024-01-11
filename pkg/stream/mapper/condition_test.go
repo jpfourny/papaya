@@ -1,10 +1,10 @@
 package mapper
 
 import (
+	"github.com/jpfourny/papaya/pkg/stream/pred"
 	"testing"
 
 	"github.com/jpfourny/papaya/pkg/optional"
-	"github.com/jpfourny/papaya/pkg/pred"
 )
 
 func TestIf(t *testing.T) {

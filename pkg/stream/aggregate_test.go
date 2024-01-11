@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"github.com/jpfourny/papaya/pkg/cmp"
 	"testing"
 
 	"github.com/jpfourny/papaya/pkg/optional"
@@ -57,7 +58,7 @@ func TestAggregate(t *testing.T) {
 
 func TestSum(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		got := Sum(Empty[int]())
+		got := Sum[int](Empty[int]())
 		want := 0
 		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
@@ -65,63 +66,26 @@ func TestSum(t *testing.T) {
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		got := Sum(Of(1, 2, 3))
+		got := Sum[int](Of(1, 2, 3))
 		want := 6
 		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
 	})
-
 }
 
-func TestSumInteger(t *testing.T) {
+func TestSumComplex(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		got := SumInteger(Empty[int]())
-		want := int64(0)
+		got := SumComplex[complex128](Empty[complex128]())
+		want := complex128(0)
 		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		got := SumInteger(Of(1, 2, 3))
-		want := int64(6)
-		if got != want {
-			t.Errorf("got %#v, want %#v", got, want)
-		}
-	})
-}
-
-func TestSumUnsignedInteger(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		got := SumUnsignedInteger(Empty[uint]())
-		want := uint64(0)
-		if got != want {
-			t.Errorf("got %#v, want %#v", got, want)
-		}
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		got := SumUnsignedInteger(Of[uint](1, 2, 3))
-		want := uint64(6)
-		if got != want {
-			t.Errorf("got %#v, want %#v", got, want)
-		}
-	})
-}
-
-func TestSumFloat(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		got := SumFloat(Empty[float64]())
-		want := 0.0
-		if got != want {
-			t.Errorf("got %#v, want %#v", got, want)
-		}
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		got := SumFloat(Of(1.0, 2.0, 3.0))
-		want := 6.0
+		got := SumComplex[complex128](Of(complex(1, 2), complex(3, 4)))
+		want := complex(4, 6)
 		if got != want {
 			t.Errorf("got %#v, want %#v", got, want)
 		}
@@ -164,6 +128,24 @@ func TestMin(t *testing.T) {
 	})
 }
 
+func TestMinBy(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		got := MinBy(Empty[int](), cmp.Natural[int]())
+		want := optional.Empty[int]()
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		got := MinBy(Of(3, 1, 2), cmp.Natural[int]())
+		want := optional.Of(1)
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+}
+
 func TestMax(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		got := Max(Empty[int]())
@@ -175,6 +157,24 @@ func TestMax(t *testing.T) {
 
 	t.Run("non-empty", func(t *testing.T) {
 		got := Max(Of(1, 3, 2))
+		want := optional.Of(3)
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+}
+
+func TestMaxBy(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		got := MaxBy(Empty[int](), cmp.Natural[int]())
+		want := optional.Empty[int]()
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		got := MaxBy(Of(1, 3, 2), cmp.Natural[int]())
 		want := optional.Of(3)
 		if got != want {
 			t.Errorf("got %v, want %v", got, want)

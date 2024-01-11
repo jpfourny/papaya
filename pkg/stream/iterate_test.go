@@ -1,12 +1,12 @@
 package stream
 
 import (
+	"github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/pkg/stream/pred"
 	"testing"
 
 	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/mapper"
 	"github.com/jpfourny/papaya/pkg/optional"
-	"github.com/jpfourny/papaya/pkg/pred"
 )
 
 func TestIterate(t *testing.T) {

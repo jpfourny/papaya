@@ -2,9 +2,8 @@ package stream
 
 import (
 	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/stream/mapper"
 	"strings"
-
-	"github.com/jpfourny/papaya/pkg/mapper"
 )
 
 // ForEach invokes the given consumer for each element in the stream.

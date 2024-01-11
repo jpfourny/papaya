@@ -2,10 +2,10 @@ package stream
 
 import (
 	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/mapper"
 	"github.com/jpfourny/papaya/pkg/optional"
 	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/pred"
+	"github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/pkg/stream/pred"
 )
 
 // Combiner represents a function that combines two elements of type E1 and E2 into an element of type F.
