@@ -153,39 +153,3 @@ func TestZipWithIndex(t *testing.T) {
 		assert.ElementsMatch(t, got, want)
 	})
 }
-
-func TestZipWithKey(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		s := ZipWithKey(Empty[int](), func(e int) int {
-			return e * 10
-		})
-		got := CollectSlice(s)
-		var want []pair.Pair[int, int]
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("non-empty", func(t *testing.T) {
-		s := ZipWithKey(Of(1, 2, 3), func(e int) int {
-			return e * 10
-		})
-		got := CollectSlice(s)
-		want := []pair.Pair[int, int]{
-			pair.Of(10, 1),
-			pair.Of(20, 2),
-			pair.Of(30, 3),
-		}
-		assert.ElementsMatch(t, got, want)
-	})
-
-	t.Run("limited", func(t *testing.T) {
-		s := ZipWithKey(Of(1, 2, 3), func(e int) int {
-			return e * 10
-		})
-		got := CollectSlice(Limit(s, 2)) // Stops stream after 2 elements.
-		want := []pair.Pair[int, int]{
-			pair.Of(10, 1),
-			pair.Of(20, 2),
-		}
-		assert.ElementsMatch(t, got, want)
-	})
-}

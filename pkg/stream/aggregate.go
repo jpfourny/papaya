@@ -56,7 +56,7 @@ func Reduce[E any](s Stream[E], reduce Reducer[E]) optional.Optional[E] {
 //	n2 := stream.Sum[float64](stream.Of(1, 2, 3)) // 6.0 (float64)
 func Sum[R, E constraint.RealNumber](s Stream[E]) R {
 	return Reduce(
-		Map(s, mapper.NumberToNumber[E, R]()),
+		Map(s, mapper.NumToNum[E, R]()),
 		reducer.Sum[R](),
 	).OrElseZero()
 }

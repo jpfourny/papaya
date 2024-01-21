@@ -56,40 +56,40 @@ func TestStringToString(t *testing.T) {
 
 type testInt int
 
-func TestNumberToNumber(t *testing.T) {
+func TestNumToNum(t *testing.T) {
 	t.Run("int-to-float64", func(t *testing.T) {
-		m := NumberToNumber[int, float64]()
+		m := NumToNum[int, float64]()
 		got := m(42)
 		want := float64(42)
 		if got != want {
-			t.Errorf("NumberToNumber()(42) = %#v; want %#v", got, want)
+			t.Errorf("NumToNum()(42) = %#v; want %#v", got, want)
 		}
 	})
 
 	t.Run("float64-to-int", func(t *testing.T) {
-		m := NumberToNumber[float64, int]()
+		m := NumToNum[float64, int]()
 		got := m(42)
 		want := 42
 		if got != want {
-			t.Errorf("NumberToNumber()(42) = %#v; want %#v", got, want)
+			t.Errorf("NumToNum()(42) = %#v; want %#v", got, want)
 		}
 	})
 
 	t.Run("int-to-testInt", func(t *testing.T) {
-		m := NumberToNumber[int, testInt]()
+		m := NumToNum[int, testInt]()
 		got := m(42)
 		want := testInt(42)
 		if got != want {
-			t.Errorf("NumberToNumber()(42) = %#v; want %#v", got, want)
+			t.Errorf("NumToNum()(42) = %#v; want %#v", got, want)
 		}
 	})
 
 	t.Run("testInt-to-int", func(t *testing.T) {
-		m := NumberToNumber[testInt, int]()
+		m := NumToNum[testInt, int]()
 		got := m(42)
 		want := 42
 		if got != want {
-			t.Errorf("NumberToNumber()(42) = %#v; want %#v", got, want)
+			t.Errorf("NumToNum()(42) = %#v; want %#v", got, want)
 		}
 	})
 }
@@ -114,58 +114,58 @@ func TestComplexToComplex(t *testing.T) {
 	})
 }
 
-func TestBoolToNumber(t *testing.T) {
+func TestBoolToNum(t *testing.T) {
 	t.Run("bool-to-int", func(t *testing.T) {
-		m := BoolToNumber[bool, int]()
+		m := BoolToNum[bool, int]()
 		got := m(true)
 		want := 1
 		if got != want {
-			t.Errorf("BoolToNumber()(true) = %#v; want %#v", got, want)
+			t.Errorf("BoolToNum()(true) = %#v; want %#v", got, want)
 		}
 		got = m(false)
 		want = 0
 		if got != want {
-			t.Errorf("BoolToNumber()(false) = %#v; want %#v", got, want)
+			t.Errorf("BoolToNum()(false) = %#v; want %#v", got, want)
 		}
 	})
 
 	t.Run("bool-to-testInt", func(t *testing.T) {
-		m := BoolToNumber[bool, testInt]()
+		m := BoolToNum[bool, testInt]()
 		got := m(true)
 		want := testInt(1)
 		if got != want {
-			t.Errorf("BoolToNumber()(true) = %#v; want %#v", got, want)
+			t.Errorf("BoolToNum()(true) = %#v; want %#v", got, want)
 		}
 		got = m(false)
 		want = 0
 		if got != want {
-			t.Errorf("BoolToNumber()(false) = %#v; want %#v", got, want)
+			t.Errorf("BoolToNum()(false) = %#v; want %#v", got, want)
 		}
 	})
 }
 
 func TestNumberToBool(t *testing.T) {
 	t.Run("int-to-bool", func(t *testing.T) {
-		m := NumberToBool[int, bool]()
+		m := NumToBool[int, bool]()
 		got := m(42)
 		if got != true {
-			t.Errorf("NumberToBool()(42) = %#v; want %#v", got, true)
+			t.Errorf("NumToBool()(42) = %#v; want %#v", got, true)
 		}
 		got = m(0)
 		if got != false {
-			t.Errorf("NumberToBool()(0) = %#v; want %#v", got, false)
+			t.Errorf("NumToBool()(0) = %#v; want %#v", got, false)
 		}
 	})
 
 	t.Run("testInt-to-bool", func(t *testing.T) {
-		m := NumberToBool[testInt, bool]()
+		m := NumToBool[testInt, bool]()
 		got := m(42)
 		if got != true {
-			t.Errorf("NumberToBool()(42) = %#v; want %#v", got, true)
+			t.Errorf("NumToBool()(42) = %#v; want %#v", got, true)
 		}
 		got = m(0)
 		if got != false {
-			t.Errorf("NumberToBool()(0) = %#v; want %#v", got, false)
+			t.Errorf("NumToBool()(0) = %#v; want %#v", got, false)
 		}
 	})
 }

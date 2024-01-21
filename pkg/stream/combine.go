@@ -107,9 +107,7 @@ func CombineOrDiscard[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine Optio
 //	s := stream.Zip(stream.Of(1, 2, 3), stream.Of("foo", "bar"))
 //	out := stream.DebugString(s) // "<(1, foo), (2, bar)>"
 func Zip[E, F any](s1 Stream[E], s2 Stream[F]) Stream[pair.Pair[E, F]] {
-	return Combine(s1, s2, func(e E, f F) pair.Pair[E, F] {
-		return pair.Of(e, f)
-	})
+	return Combine(s1, s2, pair.Of[E, F])
 }
 
 // ZipWithIndex returns a stream that pairs each element in the input stream with its index, starting at the given offset.
@@ -120,32 +118,5 @@ func Zip[E, F any](s1 Stream[E], s2 Stream[F]) Stream[pair.Pair[E, F]] {
 //	s := stream.ZipWithIndex(stream.Of("foo", "bar"), 1)
 //	out := stream.DebugString(s) // "<(foo, 1), (bar, 2)>"
 func ZipWithIndex[E any, I constraint.Integer](s Stream[E], offset I) Stream[pair.Pair[E, I]] {
-	return Combine(
-		s,
-		Range[I](offset, pred.True[I](), mapper.Increment[I](1)),
-		func(e E, i I) pair.Pair[E, I] {
-			return pair.Of(e, i)
-		},
-	)
-}
-
-// KeyExtractor represents a function that extracts a key of type K from a value of type E.
-type KeyExtractor[E, K any] func(e E) K
-
-// ZipWithKey returns a stream that pairs each element in the input stream with the key extracted from the element using the given key extractor.
-// The resulting stream will have the same number of elements as the input stream.
-//
-// Example usage:
-//
-//	s := stream.ZipWithKey(
-//	  stream.Of("foo", "bar"),
-//	  func(s string) string {
-//	    return strings.ToUpper(s)
-//	  },
-//	)
-//	out := stream.DebugString(s) // "<(FOO, foo), (BAR, bar)>"
-func ZipWithKey[K, E any](s Stream[E], ke KeyExtractor[E, K]) Stream[pair.Pair[K, E]] {
-	return Map(s, func(e E) pair.Pair[K, E] {
-		return pair.Of(ke(e), e)
-	})
+	return Zip(s, Walk(offset, pred.True[I](), mapper.Increment[I](1)))
 }

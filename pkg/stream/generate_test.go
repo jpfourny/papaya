@@ -12,6 +12,18 @@ func TestGenerate(t *testing.T) {
 	assert.ElementsMatch(t, out, []int{1, 1, 1, 1, 1})
 }
 
+func TestRepeat(t *testing.T) {
+	s := Repeat(1)
+	out := CollectSlice(Limit(s, 5)) // Limit to 5 elements for testing.
+	assert.ElementsMatch(t, out, []int{1, 1, 1, 1, 1})
+}
+
+func TestRepeatN(t *testing.T) {
+	s := RepeatN(1, 3)
+	out := CollectSlice(s)
+	assert.ElementsMatch(t, out, []int{1, 1, 1})
+}
+
 func TestRandomInt(t *testing.T) {
 	s := RandomInt(rand.NewSource(0))     // Seed with 0 for testing - should produce the same sequence every time.
 	out := CollectSlice[int](Limit(s, 5)) // Limit to 5 elements for testing.

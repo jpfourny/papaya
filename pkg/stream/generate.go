@@ -1,10 +1,11 @@
 package stream
 
-import "math/rand"
+import (
+	"math/rand"
+)
 
 // Generator represents a function that produces an infinite sequence of elements of type E.
 // Used by the Generate function.
-// Example: Random numbers.
 type Generator[E any] func() E
 
 // Generate returns an infinite stream that produces elements by invoking the given generator function.
@@ -21,6 +22,27 @@ func Generate[E any](next Generator[E]) Stream[E] {
 			}
 		}
 	}
+}
+
+// Repeat returns an infinite stream that always produces the given element.
+//
+// Example usage:
+//
+//	s := stream.Repeat(1)
+//	out := stream.DebugString(s) // "<1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...>"
+func Repeat[E any](e E) Stream[E] {
+	return Generate(func() E { return e })
+}
+
+// RepeatN returns a stream that produces the given element n times.
+// If n is less than or equal to zero, the stream will be empty.
+//
+// Example usage:
+//
+//	s := stream.RepeatN(1, 3)
+//	out := stream.DebugString(s) // "<1, 1, 1>"
+func RepeatN[E any](e E, n int64) Stream[E] {
+	return Limit(Repeat(e), n)
 }
 
 // RandomInt returns a stream that produces pseudo-random, non-negative int values using the given rand.Source.
