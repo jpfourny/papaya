@@ -91,8 +91,14 @@ func TestSortByMethod(t *testing.T) {
 
 func TestSortBySlice(t *testing.T) {
 	// Sort a slice of int elements in natural order.
-	intSliceOrder := cmp.Slice[int](cmp.Natural[int]()) // []int sorted lexicographically, elements in natural order.
-	s := stream.SortBy(stream.Of([]int{3, 1, 2}, []int{2, 1, 3}, []int{2, 1}), intSliceOrder)
+	s := stream.SortBy(
+		stream.Of(
+			[]int{3, 1, 2},
+			[]int{2, 1, 3},
+			[]int{2, 1},
+		),
+		cmp.Slice[int](cmp.Natural[int]()), // []int sorted lexicographically, elements in natural order.
+	)
 	stream.ForEach(s, func(slice []int) {
 		fmt.Println(slice)
 	})

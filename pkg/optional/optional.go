@@ -2,6 +2,45 @@ package optional
 
 import "fmt"
 
+// Empty returns an empty Optional (None).
+func Empty[V any]() Optional[V] {
+	return None[V]{}
+}
+
+// Of returns a non-empty Optional (Some) wrapping the provided value.
+func Of[V any](value V) Optional[V] {
+	return Some[V]{Value: value}
+}
+
+// Maybe returns a non-empty Optional wrapping the provided value if ok is true; an empty Optional, otherwise.
+func Maybe[V any](value V, ok bool) Optional[V] {
+	if ok {
+		return Some[V]{Value: value}
+	}
+	return None[V]{}
+}
+
+// Map returns an Optional containing the result of applying the provided function to the value contained in the provided Optional.
+// If the provided Optional is empty, an empty Optional is returned.
+//
+// Example usage:
+//
+//	o := optional.Map(
+//	  optional.Of(1),
+//	  func(i int) string { return fmt.Sprintf("%d", i) },
+//	) // optional.Some("1")
+//
+//	o = optional.Map(
+//	  optional.Empty[int](),
+//	  func(i int) string { return fmt.Sprintf("%d", i) },
+//	) // optional.None()
+func Map[V, U any](o Optional[V], mapper func(V) U) Optional[U] {
+	if o.Present() {
+		return Of(mapper(o.Get()))
+	}
+	return Empty[U]()
+}
+
 // Optional is a generic type that takes one type parameter V and represents a value that may or may not be present.
 // It is similar to Java's Optional type.
 type Optional[V any] interface {
@@ -107,43 +146,4 @@ func (s Some[V]) Get() V {
 
 func (s Some[V]) String() string {
 	return fmt.Sprintf("Some(%#v)", s.Value)
-}
-
-// Of returns an Optional containing the provided value.
-func Of[V any](value V) Optional[V] {
-	return Some[V]{Value: value}
-}
-
-// Maybe returns an Optional containing the provided value if the provided boolean is true, or an empty Optional otherwise.
-func Maybe[V any](value V, ok bool) Optional[V] {
-	if ok {
-		return Some[V]{Value: value}
-	}
-	return None[V]{}
-}
-
-// Empty returns an empty Optional.
-func Empty[V any]() Optional[V] {
-	return None[V]{}
-}
-
-// Map returns an Optional containing the result of applying the provided function to the value contained in the provided Optional.
-// If the provided Optional is empty, an empty Optional is returned.
-//
-// Example usage:
-//
-//	o := optional.Map(
-//	  optional.Of(1),
-//	  func(i int) string { return fmt.Sprintf("%d", i) },
-//	) // optional.Some("1")
-//
-//	o = optional.Map(
-//	  optional.Empty[int](),
-//	  func(i int) string { return fmt.Sprintf("%d", i) },
-//	) // optional.None()
-func Map[V, U any](o Optional[V], mapper func(V) U) Optional[U] {
-	if o.Present() {
-		return Of(mapper(o.Get()))
-	}
-	return Empty[U]()
 }

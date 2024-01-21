@@ -6,7 +6,7 @@ import (
 	"slices"
 )
 
-// Store represents a container for key-value pairs.
+// Store represents a container of key-value pairs.
 // Used internally for key-grouping and key-joining operations.
 type Store[K, V any] interface {
 	Get(key K) optional.Optional[V]

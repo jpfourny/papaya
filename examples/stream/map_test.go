@@ -2,7 +2,7 @@ package stream
 
 import (
 	"fmt"
-	mapper2 "github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/pkg/stream/mapper"
 	"testing"
 
 	"github.com/jpfourny/papaya/pkg/pair"
@@ -13,7 +13,7 @@ func TestMapIntToString(t *testing.T) {
 	// Map stream of int to string.
 	s := stream.Map(
 		stream.Of(1, 2, 3),
-		mapper2.Sprintf[int]("%d"),
+		mapper.Sprintf[int]("%d"),
 	)
 	stream.ForEach(s, func(s string) {
 		fmt.Println(s)
@@ -25,10 +25,10 @@ func TestMapIntToString(t *testing.T) {
 }
 
 func TestMapStringToInt(t *testing.T) {
-	// Map stream of string to int; default to 0 if parse fails.
+	// Map stream of string to int; default to -1 when parse fails.
 	s := stream.Map(
 		stream.Of("1", "2", "3", "foo"),
-		mapper2.ParseIntOr[string, int](10, 64, -1),
+		mapper.ParseIntOr[string, int](10, 64, -1),
 	)
 	stream.ForEach(s, func(i int) {
 		fmt.Println(i)
@@ -39,9 +39,10 @@ func TestMapStringToInt(t *testing.T) {
 	// 3
 	// -1
 
+	// Same as above, but discard the parse failures.
 	s = stream.MapOrDiscard(
 		stream.Of("1", "2", "3", "foo"),
-		mapper2.TryParseInt[string, int](10, 64),
+		mapper.TryParseInt[string, int](10, 64),
 	)
 	stream.ForEach(s, func(i int) {
 		fmt.Println(i)
@@ -107,7 +108,7 @@ func TestMapNumToBool(t *testing.T) {
 	// Given stream of numbers, map each number to whether it is even.
 	s := stream.Map(
 		stream.Of(0, 2, 0),
-		mapper2.NumToBool[int, bool](),
+		mapper.NumToBool[int, bool](),
 	)
 	stream.ForEach(s, func(b bool) {
 		fmt.Println(b)
@@ -122,7 +123,7 @@ func TestMapBoolNumber(t *testing.T) {
 	// Given stream of bools, map each bool to 0 if false and 1 if true.
 	s := stream.Map(
 		stream.Of(false, true, false),
-		mapper2.BoolToNum[bool, int](),
+		mapper.BoolToNum[bool, int](),
 	)
 	stream.ForEach(s, func(i int) {
 		fmt.Println(i)

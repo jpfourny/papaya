@@ -14,10 +14,10 @@ func PointerRef[E any]() func(E) *E {
 }
 
 // PointerDeref returns a function that accepts a pointer to a value and returns the value of that pointer as an optional.Optional.
-// The value is retrieved using the pointer.Deref function. If the pointer is nil, then an empty optional is returned.
+// The value is retrieved using the pointer.DerefOptional function. If the pointer is nil, then an empty optional is returned.
 func PointerDeref[E any]() func(*E) optional.Optional[E] {
 	return func(e *E) optional.Optional[E] {
-		return pointer.Deref(e)
+		return pointer.DerefOptional(e)
 	}
 }
 
