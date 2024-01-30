@@ -68,6 +68,14 @@ type Optional[V any] interface {
 
 	// OrElseGet returns the value contained in the Optional if the Optional is not empty, or the result of the provided function otherwise.
 	OrElseGet(func() V) V
+
+	// Explode returns the value contained in the Optional and an indicator of whether the Optional is empty.
+	// If the Optional is empty, the value returned is the zero value of type V.
+	Explode() (V, bool)
+
+	// Filter returns an Optional containing the value contained in the Optional if the provided predicate returns true for that value.
+	// If the Optional is empty, an empty Optional is returned.
+	Filter(func(V) bool) Optional[V]
 }
 
 // None is an Optional that represents the absence of a value.
@@ -81,6 +89,15 @@ func (n None[V]) Present() bool {
 func (n None[V]) Get() V {
 	var zero V
 	return zero
+}
+
+func (n None[V]) Explode() (V, bool) {
+	var zero V
+	return zero, false
+}
+
+func (n None[V]) Filter(_ func(V) bool) Optional[V] {
+	return n
 }
 
 func (n None[V]) IfPresent(_ func(V)) bool {
@@ -118,6 +135,21 @@ func (s Some[V]) Present() bool {
 	return true
 }
 
+func (s Some[V]) Get() V {
+	return s.Value
+}
+
+func (s Some[V]) Explode() (V, bool) {
+	return s.Value, true
+}
+
+func (s Some[V]) Filter(f func(V) bool) Optional[V] {
+	if f(s.Value) {
+		return s
+	}
+	return Empty[V]()
+}
+
 func (s Some[V]) IfPresent(f func(V)) bool {
 	f(s.Value)
 	return true
@@ -137,10 +169,6 @@ func (s Some[V]) OrElseZero() V {
 }
 
 func (s Some[V]) OrElseGet(_ func() V) V {
-	return s.Value
-}
-
-func (s Some[V]) Get() V {
 	return s.Value
 }
 

@@ -67,6 +67,71 @@ func TestMap(t *testing.T) {
 	})
 }
 
+func TestPresent(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+		if !o.Present() {
+			t.Errorf("expected Present() to be true")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		if o.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+	})
+}
+
+func TestExplode(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+		if v, ok := o.Explode(); !ok || v != 42 {
+			t.Errorf("expected Explode() to return (42, true)")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		if v, ok := o.Explode(); ok || v != 0 {
+			t.Errorf("expected Explode() to return (0, false)")
+		}
+	})
+}
+
+func TestFilter(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+
+		o2 := o.Filter(func(i int) bool { return i == 42 })
+		if !o2.Present() {
+			t.Errorf("expected Present() to be true")
+		}
+		if o2.Get() != 42 {
+			t.Errorf("expected Get() to return 42")
+		}
+
+		o3 := o.Filter(func(i int) bool { return i != 42 })
+		if o3.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+
+		o2 := o.Filter(func(i int) bool { return i == 42 })
+		if o2.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+
+		o3 := o.Filter(func(i int) bool { return i != 42 })
+		if o3.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+	})
+}
+
 func TestIfPresent(t *testing.T) {
 	t.Run("Some", func(t *testing.T) {
 		var called bool
