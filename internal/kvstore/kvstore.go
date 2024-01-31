@@ -2,14 +2,14 @@ package kvstore
 
 import (
 	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"slices"
 )
 
 // Store represents a container of key-value pairs.
 // Used internally for key-grouping and key-joining operations.
 type Store[K, V any] interface {
-	Get(key K) optional.Optional[V]
+	Get(key K) opt.Optional[V]
 	Put(key K, value V)
 	ForEach(func(key K, value V) bool) bool
 }
@@ -49,11 +49,11 @@ func SortedMaker[K any, V any](compare cmp.Comparer[K]) Maker[K, V] {
 // The key type K must be comparable.
 type mappedStore[K comparable, V any] map[K]V
 
-func (s mappedStore[K, V]) Get(key K) optional.Optional[V] {
+func (s mappedStore[K, V]) Get(key K) opt.Optional[V] {
 	if v, ok := s[key]; ok {
-		return optional.Of(v)
+		return opt.Of(v)
 	}
-	return optional.Empty[V]()
+	return opt.Empty[V]()
 }
 
 func (s mappedStore[K, V]) Put(key K, value V) {
@@ -77,11 +77,11 @@ type sortedStore[K any, V any] struct {
 	values  []V
 }
 
-func (s *sortedStore[K, V]) Get(key K) optional.Optional[V] {
+func (s *sortedStore[K, V]) Get(key K) opt.Optional[V] {
 	if i, ok := s.indexOf(key); ok {
-		return optional.Of(s.values[i])
+		return opt.Of(s.values[i])
 	}
-	return optional.Empty[V]()
+	return opt.Empty[V]()
 }
 
 func (s *sortedStore[K, V]) Put(key K, value V) {

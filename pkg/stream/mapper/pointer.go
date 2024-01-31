@@ -1,38 +1,34 @@
 package mapper
 
 import (
-	"github.com/jpfourny/papaya/pkg/optional"
-	"github.com/jpfourny/papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/pkg/ptr"
 )
 
-// PointerRef returns a function that accepts any value and returns a pointer to a copy of that value.
-// The pointer is created using the pointer.Ref function.
-func PointerRef[E any]() func(E) *E {
-	return func(e E) *E {
-		return pointer.Ref(e)
+// PtrRef returns a function that accepts a value of type V and returns a pointer to a copy of the value (on the heap).
+func PtrRef[V any]() func(V) *V {
+	return func(v V) *V {
+		return ptr.Ref(v)
 	}
 }
 
-// PointerDeref returns a function that accepts a pointer to a value and returns the value of that pointer as an optional.Optional.
-// The value is retrieved using the pointer.DerefOptional function. If the pointer is nil, then an empty optional is returned.
-func PointerDeref[E any]() func(*E) optional.Optional[E] {
-	return func(e *E) optional.Optional[E] {
-		return pointer.DerefOptional(e)
+// PtrDerefOptional returns a function that accepts a pointer and returns the dereferenced value as an opt.Optional, or an empty opt.Optional if the pointer is nil.
+func PtrDerefOptional[V any]() func(*V) opt.Optional[V] {
+	return func(v *V) opt.Optional[V] {
+		return ptr.DerefOptional(v)
 	}
 }
 
-// PointerDerefOr returns a function that accepts a pointer to a value and returns the value of that pointer, or the provided `or` default value if the pointer is nil.
-// The value is retrieved using the pointer.DerefOr function. If the pointer is nil, then the provided `or` default value is returned.
-func PointerDerefOr[E any](or E) func(*E) E {
-	return func(e *E) E {
-		return pointer.DerefOr(e, or)
+// PtrDerefOrZero returns a function that accepts a pointer and returns the dereferenced value, or the zero value of type V if the pointer is nil.
+func PtrDerefOrZero[V any]() func(*V) V {
+	return func(v *V) V {
+		return ptr.DerefOrZero(v)
 	}
 }
 
-// PointerDerefOrZero returns a function that accepts a pointer to a value and returns the value of that pointer, or the zero value of that type if the pointer is nil.
-// The value is retrieved using the pointer.DerefOrZero function. If the pointer is nil, then the zero value of that type is returned.
-func PointerDerefOrZero[E any]() func(*E) E {
-	return func(e *E) E {
-		return pointer.DerefOrZero(e)
+// PtrDerefOrDefault returns a function that accepts a pointer and returns the dereferenced value, or the provided default value if the pointer is nil.
+func PtrDerefOrDefault[V any](or V) func(*V) V {
+	return func(v *V) V {
+		return ptr.DerefOrDefault(v, or)
 	}
 }

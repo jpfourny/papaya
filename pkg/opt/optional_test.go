@@ -1,4 +1,4 @@
-package optional
+package opt
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ func TestOf(t *testing.T) {
 	if !o.Present() {
 		t.Errorf("expected Present() to be true")
 	}
-	if o.Get() != 42 {
+	if o.GetOrZero() != 42 {
 		t.Errorf("expected Get() to return 42")
 	}
 }
@@ -20,7 +20,7 @@ func TestMaybe(t *testing.T) {
 		if !o.Present() {
 			t.Errorf("expected Present() to be true")
 		}
-		if o.Get() != 42 {
+		if o.GetOrZero() != 42 {
 			t.Errorf("expected Get() to return 42")
 		}
 	})
@@ -30,7 +30,7 @@ func TestMaybe(t *testing.T) {
 		if o.Present() {
 			t.Errorf("expected Present() to be false")
 		}
-		if o.Get() != 0 {
+		if o.GetOrZero() != 0 {
 			t.Errorf("expected Get() to return 0")
 		}
 	})
@@ -41,9 +41,36 @@ func TestEmpty(t *testing.T) {
 	if o.Present() {
 		t.Errorf("expected Present() to be false")
 	}
-	if o.Get() != 0 {
+	if o.GetOrZero() != 0 {
 		t.Errorf("expected Get() to return 0")
 	}
+}
+
+func TestAny(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Any(Of(42), Empty[int]())
+		if !o.Present() {
+			t.Errorf("expected Present() to be true")
+		}
+		if o.GetOrZero() != 42 {
+			t.Errorf("expected Get() to return 42")
+		}
+
+		o = Any(Empty[int](), Of(42))
+		if !o.Present() {
+			t.Errorf("expected Present() to be true")
+		}
+		if o.GetOrZero() != 42 {
+			t.Errorf("expected Get() to return 42")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Any(Empty[int](), Empty[int]())
+		if o.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+	})
 }
 
 func TestMap(t *testing.T) {
@@ -53,7 +80,7 @@ func TestMap(t *testing.T) {
 		if !m.Present() {
 			t.Errorf("expected Present() to be true")
 		}
-		if m.Get() != "foo" {
+		if m.GetOrZero() != "foo" {
 			t.Errorf("expected Get() to return %q", "foo")
 		}
 	})
@@ -83,18 +110,50 @@ func TestPresent(t *testing.T) {
 	})
 }
 
-func TestExplode(t *testing.T) {
+func TestGet(t *testing.T) {
 	t.Run("Some", func(t *testing.T) {
 		o := Of(42)
-		if v, ok := o.Explode(); !ok || v != 42 {
-			t.Errorf("expected Explode() to return (42, true)")
+		if v, ok := o.Get(); !ok || v != 42 {
+			t.Errorf("expected Get() to return (42, true)")
 		}
 	})
 
 	t.Run("None", func(t *testing.T) {
 		o := Empty[int]()
-		if v, ok := o.Explode(); ok || v != 0 {
-			t.Errorf("expected Explode() to return (0, false)")
+		if v, ok := o.Get(); ok || v != 0 {
+			t.Errorf("expected Get() to return (0, false)")
+		}
+	})
+}
+
+func TestGetOrDefault(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+		if o.GetOrDefault(0) != 42 {
+			t.Errorf("expected GetOrDefault to return 42")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		if o.GetOrDefault(0) != 0 {
+			t.Errorf("expected GetOrDefault to return 0")
+		}
+	})
+}
+
+func TestGetOrFunc(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+		if o.GetOrFunc(func() int { return 0 }) != 42 {
+			t.Errorf("expected GetOrFunc to return 42")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		if o.GetOrFunc(func() int { return 0 }) != 0 {
+			t.Errorf("expected GetOrFunc to return 0")
 		}
 	})
 }
@@ -107,7 +166,7 @@ func TestFilter(t *testing.T) {
 		if !o2.Present() {
 			t.Errorf("expected Present() to be true")
 		}
-		if o2.Get() != 42 {
+		if o2.GetOrZero() != 42 {
 			t.Errorf("expected Get() to return 42")
 		}
 
@@ -186,54 +245,6 @@ func TestIfPresentElse(t *testing.T) {
 		}
 		if !called {
 			t.Errorf("expected Else callback to be called")
-		}
-	})
-}
-
-func TestOrElse(t *testing.T) {
-	t.Run("Some", func(t *testing.T) {
-		o := Of(42)
-		if o.OrElse(0) != 42 {
-			t.Errorf("expected OrElse to return 42")
-		}
-	})
-
-	t.Run("None", func(t *testing.T) {
-		o := Empty[int]()
-		if o.OrElse(0) != 0 {
-			t.Errorf("expected OrElse to return 0")
-		}
-	})
-}
-
-func TestOrElseZero(t *testing.T) {
-	t.Run("Some", func(t *testing.T) {
-		o := Of(42)
-		if o.OrElseZero() != 42 {
-			t.Errorf("expected OrElseZero to return 42")
-		}
-	})
-
-	t.Run("None", func(t *testing.T) {
-		o := Empty[int]()
-		if o.OrElseZero() != 0 {
-			t.Errorf("expected OrElseZero to return 0")
-		}
-	})
-}
-
-func TestOrElseGet(t *testing.T) {
-	t.Run("Some", func(t *testing.T) {
-		o := Of(42)
-		if o.OrElseGet(func() int { return 0 }) != 42 {
-			t.Errorf("expected OrElseGet to return 42")
-		}
-	})
-
-	t.Run("None", func(t *testing.T) {
-		o := Empty[int]()
-		if o.OrElseGet(func() int { return 0 }) != 0 {
-			t.Errorf("expected OrElseGet to return 0")
 		}
 	})
 }

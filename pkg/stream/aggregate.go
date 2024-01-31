@@ -3,7 +3,7 @@ package stream
 import (
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"github.com/jpfourny/papaya/pkg/stream/mapper"
 	"github.com/jpfourny/papaya/pkg/stream/reducer"
 )
@@ -13,7 +13,7 @@ import (
 type Reducer[E any] func(e1, e2 E) (result E)
 
 // Reduce combines the elements of the stream into a single value using the given reducer function.
-// If the stream is empty, then an empty optional.Optional is returned.
+// If the stream is empty, then an empty opt.Optional is returned.
 // The stream is fully consumed.
 //
 // Example usage:
@@ -31,7 +31,7 @@ type Reducer[E any] func(e1, e2 E) (result E)
 //	    return a + e
 //	  },
 //	) // None()
-func Reduce[E any](s Stream[E], reduce Reducer[E]) optional.Optional[E] {
+func Reduce[E any](s Stream[E], reduce Reducer[E]) opt.Optional[E] {
 	var accum E
 	var ok bool
 	s(func(e E) bool {
@@ -43,7 +43,7 @@ func Reduce[E any](s Stream[E], reduce Reducer[E]) optional.Optional[E] {
 		}
 		return true
 	})
-	return optional.Maybe(accum, ok)
+	return opt.Maybe(accum, ok)
 }
 
 // Sum computes the sum of all elements in the stream of any real-number type E and returns the result as real-number type F.
@@ -58,7 +58,7 @@ func Sum[R, E constraint.RealNumber](s Stream[E]) R {
 	return Reduce(
 		Map(s, mapper.NumToNum[E, R]()),
 		reducer.Sum[R](),
-	).OrElseZero()
+	).GetOrZero()
 }
 
 // SumComplex computes the sum of all elements in the stream of any complex-number type E and returns the result as complex-number type F.
@@ -72,7 +72,7 @@ func SumComplex[R, E constraint.Complex](s Stream[E]) R {
 	return Reduce(
 		Map(s, mapper.ComplexToComplex[E, R]()),
 		reducer.Sum[R](),
-	).OrElseZero()
+	).GetOrZero()
 }
 
 // Min returns the minimum element in the stream, or the zero value of the type parameter E if the stream is empty.
@@ -83,43 +83,43 @@ func SumComplex[R, E constraint.Complex](s Stream[E]) R {
 //
 //	min := stream.Min(stream.Of(3, 1, 2)) // Some(1)
 //	min = stream.Min(stream.Empty[int]()) // None()
-func Min[E constraint.Ordered](s Stream[E]) (min optional.Optional[E]) {
+func Min[E constraint.Ordered](s Stream[E]) (min opt.Optional[E]) {
 	return Reduce(s, reducer.Min[E]())
 }
 
 // MinBy returns the minimum element in the stream.
 // Uses the given cmp.Comparer to compare elements.
-// If the stream is empty, then an empty optional.Optional is returned.
+// If the stream is empty, then an empty opt.Optional is returned.
 //
 // Example usage:
 //
 //	min := stream.MinBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // Some(1)
 //	min = stream.MinBy(stream.Empty[int](), cmp.Natural[int]()) // None()
-func MinBy[E any](s Stream[E], compare cmp.Comparer[E]) (min optional.Optional[E]) {
+func MinBy[E any](s Stream[E], compare cmp.Comparer[E]) (min opt.Optional[E]) {
 	return Reduce(s, reducer.MinBy(compare))
 }
 
 // Max returns the maximum element in the stream.
 // Uses the natural ordering of type E to compare elements.
-// If the stream is empty, then an empty optional.Optional is returned.
+// If the stream is empty, then an empty opt.Optional is returned.
 //
 // Example usage:
 //
 //	max := stream.Max(stream.Of(3, 1, 2)) // Some(3)
 //	max = stream.Max(stream.Empty[int]()) // None()
-func Max[E constraint.Ordered](s Stream[E]) (max optional.Optional[E]) {
+func Max[E constraint.Ordered](s Stream[E]) (max opt.Optional[E]) {
 	return Reduce(s, reducer.Max[E]())
 }
 
 // MaxBy returns the maximum element in the stream, or the zero value of the type parameter E if the stream is empty.
 // Uses the given cmp.Comparer to compare elements.
-// If the stream is empty, then an empty optional.Optional is returned.
+// If the stream is empty, then an empty opt.Optional is returned.
 //
 // Example usage:
 //
 //	max := stream.MaxBy(stream.Of(3, 1, 2), cmp.Natural[int]()) // Some(3)
 //	max = stream.MaxBy(stream.Empty[int](), cmp.Natural[int]()) // None()
-func MaxBy[E any](s Stream[E], compare cmp.Comparer[E]) (max optional.Optional[E]) {
+func MaxBy[E any](s Stream[E], compare cmp.Comparer[E]) (max opt.Optional[E]) {
 	return Reduce(s, reducer.MaxBy(compare))
 }
 
@@ -170,12 +170,12 @@ func Average[E constraint.RealNumber](s Stream[E]) float64 {
 	var count uint64
 	return Aggregate(
 		s,
-		float64(0),
-		func(a float64, e E) float64 {
+		float64(0), // Initialize with zero.
+		func(a float64, e E) float64 { // Accumulate with addition; increment count.
 			count++
 			return a + float64(e)
 		},
-		func(a float64) float64 {
+		func(a float64) float64 { // Finish with division by count, or zero if count is zero.
 			if count == 0 {
 				return 0
 			}

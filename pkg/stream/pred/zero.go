@@ -1,6 +1,6 @@
 package pred
 
-// Nil returns a function that returns true if the provided pointer is nil.
+// Nil returns a function that returns true if the provided ptr is nil.
 //
 // Examples:
 //
@@ -13,7 +13,7 @@ func Nil[E any]() func(*E) bool {
 	}
 }
 
-// NotNil returns a function that returns true if the provided pointer is not nil.
+// NotNil returns a function that returns true if the provided ptr is not nil.
 //
 // Examples:
 //

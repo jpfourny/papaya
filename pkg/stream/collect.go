@@ -2,6 +2,7 @@ package stream
 
 import (
 	"context"
+	"github.com/jpfourny/papaya/pkg/stream/mapper"
 
 	"github.com/jpfourny/papaya/pkg/pair"
 )
@@ -15,9 +16,9 @@ import (
 func CollectSlice[E any](s Stream[E]) []E {
 	return Aggregate(
 		s,
-		[]E(nil),
-		func(a []E, e E) []E { return append(a, e) },
-		func(a []E) []E { return a },
+		[]E(nil), // Initialize with nil slice.
+		func(a []E, e E) []E { return append(a, e) }, // Accumulate: Append element to slice.
+		mapper.Identity[[]E](),                       // Finish: Return the slice as is.
 	)
 }
 
@@ -30,12 +31,12 @@ func CollectSlice[E any](s Stream[E]) []E {
 func CollectMap[K comparable, V any](s Stream[pair.Pair[K, V]]) map[K]V {
 	return Aggregate(
 		s,
-		make(map[K]V),
-		func(a map[K]V, e pair.Pair[K, V]) map[K]V {
+		make(map[K]V), // Initialize with empty map.
+		func(a map[K]V, e pair.Pair[K, V]) map[K]V { // Accumulate: Add key-value pair to map.
 			a[e.First()] = e.Second()
 			return a
 		},
-		func(a map[K]V) map[K]V { return a },
+		mapper.Identity[map[K]V](), // Finish: Return the map as is.
 	)
 }
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/ptr"
 )
 
 func TestNil(t *testing.T) {
@@ -12,7 +12,7 @@ func TestNil(t *testing.T) {
 	if !p(nil) {
 		t.Errorf("Nil()(nil) = false; want true")
 	}
-	if p(pointer.Ref(0)) {
+	if p(ptr.Ref(0)) {
 		t.Errorf("Nil()(0) = true; want false")
 	}
 }
@@ -22,7 +22,7 @@ func TestNotNil(t *testing.T) {
 	if p(nil) {
 		t.Errorf("NotNil()(nil) = true; want false")
 	}
-	if !p(pointer.Ref(0)) {
+	if !p(ptr.Ref(0)) {
 		t.Errorf("NotNil()(0) = false; want true")
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"github.com/jpfourny/papaya/pkg/pair"
 )
 
@@ -40,8 +40,8 @@ func TestCombine(t *testing.T) {
 
 func TestCombineOrDiscard(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		s := CombineOrDiscard(Empty[int](), Empty[string](), func(i int, s string) optional.Optional[string] {
-			return optional.Of(fmt.Sprintf("%s%d", s, i))
+		s := CombineOrDiscard(Empty[int](), Empty[string](), func(i int, s string) opt.Optional[string] {
+			return opt.Of(fmt.Sprintf("%s%d", s, i))
 		})
 		got := CollectSlice(s)
 		var want []string
@@ -49,11 +49,11 @@ func TestCombineOrDiscard(t *testing.T) {
 	})
 
 	t.Run("non-empty", func(t *testing.T) {
-		s := CombineOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+		s := CombineOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) opt.Optional[string] {
 			if i == 2 {
-				return optional.Empty[string]()
+				return opt.Empty[string]()
 			}
-			return optional.Of(fmt.Sprintf("%s%d", s, i))
+			return opt.Of(fmt.Sprintf("%s%d", s, i))
 		})
 		got := CollectSlice(s)
 		want := []string{"foo1"}
@@ -61,11 +61,11 @@ func TestCombineOrDiscard(t *testing.T) {
 	})
 
 	t.Run("limited", func(t *testing.T) {
-		s := CombineOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) optional.Optional[string] {
+		s := CombineOrDiscard(Of(1, 2, 3), Of("foo", "bar"), func(i int, s string) opt.Optional[string] {
 			if i == 2 {
-				return optional.Empty[string]()
+				return opt.Empty[string]()
 			}
-			return optional.Of(fmt.Sprintf("%s%d", s, i))
+			return opt.Of(fmt.Sprintf("%s%d", s, i))
 		})
 		got := CollectSlice(Limit(s, 1)) // Stops stream after 1 element.
 		want := []string{"foo1"}

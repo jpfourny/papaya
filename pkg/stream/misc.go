@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"github.com/jpfourny/papaya/pkg/stream/mapper"
 	"strings"
 )
@@ -41,31 +41,31 @@ func IsEmpty[E any](s Stream[E]) (empty bool) {
 	return
 }
 
-// First returns the first element in the stream; an empty optional.Optional, if the stream is empty.
+// First returns the first element in the stream; an empty opt.Optional, if the stream is empty.
 //
 // Example usage:
 //
 //	out := stream.First(stream.Of(1, 2, 3)) // Some(1)
 //	out = stream.First(stream.Empty[int]()) // None()
-func First[E any](s Stream[E]) (first optional.Optional[E]) {
-	first = optional.Empty[E]()
+func First[E any](s Stream[E]) (first opt.Optional[E]) {
+	first = opt.Empty[E]()
 	s(func(e E) bool {
-		first = optional.Of(e)
+		first = opt.Of(e)
 		return false
 	})
 	return
 }
 
-// Last returns the last element in the stream; an empty optional.Optional, if the stream is empty.
+// Last returns the last element in the stream; an empty opt.Optional, if the stream is empty.
 //
 // Example usage:
 //
 //	out := stream.Last(stream.Of(1, 2, 3)) // Some(3)
 //	out = stream.Last(stream.Empty[int]()) // None()
-func Last[E any](s Stream[E]) (last optional.Optional[E]) {
-	last = optional.Empty[E]()
+func Last[E any](s Stream[E]) (last opt.Optional[E]) {
+	last = opt.Empty[E]()
 	s(func(e E) bool {
-		last = optional.Of(e)
+		last = opt.Of(e)
 		return true
 	})
 	return

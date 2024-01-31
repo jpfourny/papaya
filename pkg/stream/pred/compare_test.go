@@ -3,7 +3,7 @@ package pred
 import (
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/ptr"
 )
 
 func TestEqual(t *testing.T) {
@@ -59,11 +59,11 @@ func TestDeepEqual(t *testing.T) {
 		t.Errorf("DeepEqual(0)(1) = true; want false")
 	}
 
-	p2 := DeepEqual(pointer.Ref(0))
-	if !p2(pointer.Ref(0)) {
+	p2 := DeepEqual(ptr.Ref(0))
+	if !p2(ptr.Ref(0)) {
 		t.Errorf("DeepEqual(&0)(&0) = false; want true")
 	}
-	if p2(pointer.Ref(1)) {
+	if p2(ptr.Ref(1)) {
 		t.Errorf("DeepEqual(&0)(&1) = true; want false")
 	}
 }
@@ -77,11 +77,11 @@ func TestNotDeepEqual(t *testing.T) {
 		t.Errorf("NotDeepEqual(0)(1) = false; want true")
 	}
 
-	p2 := NotDeepEqual(pointer.Ref(0))
-	if p2(pointer.Ref(0)) {
+	p2 := NotDeepEqual(ptr.Ref(0))
+	if p2(ptr.Ref(0)) {
 		t.Errorf("NotDeepEqual(&0)(&0) = true; want false")
 	}
-	if !p2(pointer.Ref(1)) {
+	if !p2(ptr.Ref(1)) {
 		t.Errorf("NotDeepEqual(&0)(&1) = false; want true")
 	}
 }

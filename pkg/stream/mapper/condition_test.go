@@ -4,19 +4,19 @@ import (
 	"github.com/jpfourny/papaya/pkg/stream/pred"
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 )
 
 func TestIf(t *testing.T) {
 	m := If(pred.GreaterThan(0), Constant[int](1))
 	got := m(42)
-	want := optional.Of(1)
+	want := opt.Of(1)
 	if got != want {
 		t.Errorf("If(GreaterThan(0), Constant(1))(42) = %#v; want %#v", got, want)
 	}
 
 	got = m(-42)
-	want = optional.Empty[int]()
+	want = opt.Empty[int]()
 	if got != want {
 		t.Errorf("If(GreaterThan(0), Constant(1))(-42) = %#v; want %#v", got, want)
 	}
@@ -49,19 +49,19 @@ func TestSwitch(t *testing.T) {
 		},
 	)
 	got := m(-1)
-	want := optional.Of("negative")
+	want := opt.Of("negative")
 	if got != want {
 		t.Errorf("Switch(..)(-1) = %#v; want %#v", got, want)
 	}
 
 	got = m(0)
-	want = optional.Empty[string]()
+	want = opt.Empty[string]()
 	if got != want {
 		t.Errorf("Switch(..)(0) = %#v; want %#v", got, want)
 	}
 
 	got = m(1)
-	want = optional.Of("positive")
+	want = opt.Of("positive")
 	if got != want {
 		t.Errorf("Switch(..)(1) = %#v; want %#v", got, want)
 	}

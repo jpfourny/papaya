@@ -1,4 +1,4 @@
-package pointer
+package ptr
 
 import "testing"
 
@@ -24,20 +24,31 @@ func TestDerefOptional(t *testing.T) {
 	var i = 42
 	var nilPtr *int
 	if got := DerefOptional(nilPtr); got.Present() {
-		t.Errorf("DerefOptional(%v) = %v; want empty optional", nilPtr, got)
+		t.Errorf("DerefOptional(%v) = %v; want empty opt", nilPtr, got)
 	}
-	if got := DerefOptional(Ref(i)); !got.Present() || got.Get() != i {
+	if got := DerefOptional(Ref(i)); !got.Present() || got.GetOrZero() != i {
 		t.Errorf("DerefOptional(%v) = %v; want %v", Ref(i), got, i)
 	}
 }
 
-func TestDerefOr(t *testing.T) {
+func TestDerefOrZero(t *testing.T) {
 	var i = 42
 	var nilPtr *int
-	if got := DerefOr(nilPtr, i); got != i {
+	if got := DerefOrZero(nilPtr); got != 0 {
+		t.Errorf("DerefOrZero(%v) = %v; want 0", nilPtr, got)
+	}
+	if got := DerefOrZero(Ref(i)); got != i {
+		t.Errorf("DerefOrZero(%v) = %v; want %v", Ref(i), got, i)
+	}
+}
+
+func TestDerefOrDefault(t *testing.T) {
+	var i = 42
+	var nilPtr *int
+	if got := DerefOrDefault(nilPtr, i); got != i {
 		t.Errorf("DerefOr(%v, %v) = %v; want %v", nilPtr, i, got, i)
 	}
-	if got := DerefOr(Ref(i), i+1); got != i {
+	if got := DerefOrDefault(Ref(i), i+1); got != i {
 		t.Errorf("DerefOr(%v, %v) = %v; want %v", Ref(i), i+1, got, i)
 	}
 }
@@ -50,16 +61,5 @@ func TestDerefOrFunc(t *testing.T) {
 	}
 	if got := DerefOrFunc(Ref(i), func() int { return i + 1 }); got != i {
 		t.Errorf("DerefOrElse(%v, %v) = %v; want %v", Ref(i), i+1, got, i)
-	}
-}
-
-func TestDerefOrZero(t *testing.T) {
-	var i = 42
-	var nilPtr *int
-	if got := DerefOrZero(nilPtr); got != 0 {
-		t.Errorf("DerefOrZero(%v) = %v; want 0", nilPtr, got)
-	}
-	if got := DerefOrZero(Ref(i)); got != i {
-		t.Errorf("DerefOrZero(%v) = %v; want %v", Ref(i), got, i)
 	}
 }

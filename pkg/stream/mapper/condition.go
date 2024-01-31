@@ -1,8 +1,8 @@
 package mapper
 
-import "github.com/jpfourny/papaya/pkg/optional"
+import "github.com/jpfourny/papaya/pkg/opt"
 
-// If returns a function that accepts a value of any type E and returns the result of calling the `ifTrue` function as an optional.Optional or an empty optional, if the `cond` function returns false.
+// If returns a function that accepts a value of any type E and returns the result of calling the `ifTrue` function as an opt.Optional or an empty opt, if the `cond` function returns false.
 //
 // Example usage:
 //
@@ -10,15 +10,15 @@ import "github.com/jpfourny/papaya/pkg/optional"
 //	  pred.GreaterThan(0),
 //	  mapper.Constant[int]("positive"),
 //	)
-//	out := m(-1) // optional.None
-//	out = m(0)   // optional.None
-//	out = m(1)   // optional.Some("positive")
-func If[E, F any](cond func(E) bool, ifTrue func(E) F) func(E) optional.Optional[F] {
-	return func(e E) optional.Optional[F] {
+//	out := m(-1) // opt.None
+//	out = m(0)   // opt.None
+//	out = m(1)   // opt.Some("positive")
+func If[E, F any](cond func(E) bool, ifTrue func(E) F) func(E) opt.Optional[F] {
+	return func(e E) opt.Optional[F] {
 		if cond(e) {
-			return optional.Of[F](ifTrue(e))
+			return opt.Of[F](ifTrue(e))
 		}
-		return optional.Empty[F]()
+		return opt.Empty[F]()
 	}
 }
 
@@ -51,8 +51,8 @@ type Case[E, F any] struct {
 	Mapper func(E) F
 }
 
-// Switch returns a function that accepts a value of any type E and returns the result of applying the `Mapper` from the first case whose `Cond` returns true as an optional.Optional.
-// If no case's `Cond` returns true, an empty optional is returned.
+// Switch returns a function that accepts a value of any type E and returns the result of applying the `Mapper` from the first case whose `Cond` returns true as an opt.Optional.
+// If no case's `Cond` returns true, an empty opt is returned.
 //
 // Example usage:
 //
@@ -62,17 +62,17 @@ type Case[E, F any] struct {
 //	    { Cond: pred.LessThan(0), Mapper: mapper.Constant[int]("negative") },
 //	  },
 //	)
-//	out := m(-1) // optional.Some("negative")
-//	out = m(0)   // optional.None
-//	out = m(1)   // optional.Some("positive")
-func Switch[E, F any](cases []Case[E, F]) func(E) optional.Optional[F] {
-	return func(e E) optional.Optional[F] {
+//	out := m(-1) // opt.Some("negative")
+//	out = m(0)   // opt.None
+//	out = m(1)   // opt.Some("positive")
+func Switch[E, F any](cases []Case[E, F]) func(E) opt.Optional[F] {
+	return func(e E) opt.Optional[F] {
 		for _, c := range cases {
 			if c.Cond(e) {
-				return optional.Of[F](c.Mapper(e))
+				return opt.Of[F](c.Mapper(e))
 			}
 		}
-		return optional.Empty[F]()
+		return opt.Empty[F]()
 	}
 }
 

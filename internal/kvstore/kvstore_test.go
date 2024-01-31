@@ -3,7 +3,7 @@ package kvstore
 import (
 	"github.com/jpfourny/papaya/internal/assert"
 	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"testing"
 )
 
@@ -33,7 +33,7 @@ func TestOrderedStore_Get(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		ks := NewSorted[int, string](cmp.Natural[int]())
 		got := ks.Get(0)
-		want := optional.Empty[string]()
+		want := opt.Empty[string]()
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
@@ -47,22 +47,22 @@ func TestOrderedStore_Get(t *testing.T) {
 		ks.Put(3, "three")
 		ks.Put(2, "dos")
 		got := ks.Get(1)
-		want := optional.Of("uno")
+		want := opt.Of("uno")
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
 		got = ks.Get(2)
-		want = optional.Of("dos")
+		want = opt.Of("dos")
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
 		got = ks.Get(3)
-		want = optional.Of("three")
+		want = opt.Of("three")
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
 		got = ks.Get(4)
-		want = optional.Empty[string]()
+		want = opt.Empty[string]()
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
@@ -119,7 +119,7 @@ func TestMappedStore_Get(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		ks := NewMapped[int, string]()
 		got := ks.Get(0)
-		want := optional.Empty[string]()
+		want := opt.Empty[string]()
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
@@ -133,22 +133,22 @@ func TestMappedStore_Get(t *testing.T) {
 		ks.Put(3, "three")
 		ks.Put(2, "dos")
 		got := ks.Get(1)
-		want := optional.Of("uno")
+		want := opt.Of("uno")
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
 		got = ks.Get(2)
-		want = optional.Of("dos")
+		want = opt.Of("dos")
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
 		got = ks.Get(3)
-		want = optional.Of("three")
+		want = opt.Of("three")
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}
 		got = ks.Get(4)
-		want = optional.Empty[string]()
+		want = opt.Empty[string]()
 		if got != want {
 			t.Fatalf("got %#v, want %#v", got, want)
 		}

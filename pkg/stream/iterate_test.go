@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 )
 
 func TestIterate(t *testing.T) {
@@ -38,8 +38,8 @@ func TestIterate(t *testing.T) {
 
 func TestIterateOptional(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
-		iter := func() optional.Optional[int] {
-			return optional.Empty[int]()
+		iter := func() opt.Optional[int] {
+			return opt.Empty[int]()
 		}
 		s := IterateOptional(iter)
 		got := CollectSlice(s)
@@ -49,12 +49,12 @@ func TestIterateOptional(t *testing.T) {
 
 	t.Run("non-empty", func(t *testing.T) {
 		i := 0
-		iter := func() optional.Optional[int] {
+		iter := func() opt.Optional[int] {
 			if i < 3 {
 				i++
-				return optional.Of(i)
+				return opt.Of(i)
 			}
-			return optional.Empty[int]()
+			return opt.Empty[int]()
 		}
 		s := IterateOptional(iter)
 		got := CollectSlice(s)
@@ -64,12 +64,12 @@ func TestIterateOptional(t *testing.T) {
 
 	t.Run("limited", func(t *testing.T) {
 		i := 0
-		iter := func() optional.Optional[int] {
+		iter := func() opt.Optional[int] {
 			if i < 3 {
 				i++
-				return optional.Of(i)
+				return opt.Of(i)
 			}
-			return optional.Empty[int]()
+			return opt.Empty[int]()
 		}
 		s := Limit(IterateOptional(iter), 2)
 		got := CollectSlice(s)

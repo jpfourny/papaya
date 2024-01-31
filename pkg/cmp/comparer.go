@@ -257,7 +257,7 @@ func Slice[E any](compare Comparer[E]) Comparer[[]E] {
 //
 // Example:
 //
-//	s := []*int{pointer.Ref(3), nil, pointer.Ref(1), pointer.Ref(2)}
+//	s := []*int{ptr.Ref(3), nil, ptr.Ref(1), ptr.Ref(2)}
 //	sort.Slice(s, cmp.DerefNilFirst(cmp.Natural[int]())) // [nil, 1, 2, 3]
 func DerefNilFirst[E any](compare Comparer[E]) Comparer[*E] {
 	return func(a, b *E) int {
@@ -282,7 +282,7 @@ func DerefNilFirst[E any](compare Comparer[E]) Comparer[*E] {
 //
 // Example:
 //
-//	s := []*int{pointer.Ref(3), nil, pointer.Ref(1), pointer.Ref(2)}
+//	s := []*int{ptr.Ref(3), nil, ptr.Ref(1), ptr.Ref(2)}
 //	sort.Slice(s, cmp.DerefNilLast(cmp.Natural[int]())) // [1, 2, 3, nil]
 func DerefNilLast[E any](compare Comparer[E]) Comparer[*E] {
 	return func(a, b *E) int {

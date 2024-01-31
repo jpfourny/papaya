@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/ptr"
 )
 
 type Person struct {
@@ -208,31 +208,31 @@ func TestDerefNilFirst(t *testing.T) {
 		t.Errorf("DerefNilFirst()(nil, nil): expected %d, got %d", want, got)
 	}
 
-	got = c(nil, pointer.Ref(1))
+	got = c(nil, ptr.Ref(1))
 	want = -1
 	if got != want {
 		t.Errorf("DerefNilFirst()(nil, 1): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(1), nil)
+	got = c(ptr.Ref(1), nil)
 	want = 1
 	if got != want {
 		t.Errorf("DerefNilFirst()(1, nil): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(1), pointer.Ref(2))
+	got = c(ptr.Ref(1), ptr.Ref(2))
 	want = -1
 	if got != want {
 		t.Errorf("DerefNilFirst()(1, 2): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(2), pointer.Ref(1))
+	got = c(ptr.Ref(2), ptr.Ref(1))
 	want = 1
 	if got != want {
 		t.Errorf("DerefNilFirst()(2, 1): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(1), pointer.Ref(1))
+	got = c(ptr.Ref(1), ptr.Ref(1))
 	want = 0
 	if got != want {
 		t.Errorf("DerefNilFirst()(1, 1): expected %d, got %d", want, got)
@@ -247,31 +247,31 @@ func TestDerefNilLast(t *testing.T) {
 		t.Errorf("DerefNilLast()(nil, nil): expected %d, got %d", want, got)
 	}
 
-	got = c(nil, pointer.Ref(1))
+	got = c(nil, ptr.Ref(1))
 	want = 1
 	if got != want {
 		t.Errorf("DerefNilLast()(nil, 1): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(1), nil)
+	got = c(ptr.Ref(1), nil)
 	want = -1
 	if got != want {
 		t.Errorf("DerefNilLast()(1, nil): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(1), pointer.Ref(2))
+	got = c(ptr.Ref(1), ptr.Ref(2))
 	want = -1
 	if got != want {
 		t.Errorf("DerefNilLast()(1, 2): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(2), pointer.Ref(1))
+	got = c(ptr.Ref(2), ptr.Ref(1))
 	want = 1
 	if got != want {
 		t.Errorf("DerefNilLast()(2, 1): expected %d, got %d", want, got)
 	}
 
-	got = c(pointer.Ref(1), pointer.Ref(1))
+	got = c(ptr.Ref(1), ptr.Ref(1))
 	want = 0
 	if got != want {
 		t.Errorf("DerefNilLast()(1, 1): expected %d, got %d", want, got)

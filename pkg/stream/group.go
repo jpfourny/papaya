@@ -5,6 +5,7 @@ import (
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/pkg/stream/mapper"
 )
 
 // GroupByKey returns a stream that values key-value pairs by key.
@@ -49,7 +50,7 @@ func groupByKey[K any, V any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, []V
 	return func(yield Consumer[pair.Pair[K, []V]]) bool {
 		groups := kv()
 		s(func(p pair.Pair[K, V]) bool {
-			g := groups.Get(p.First()).OrElse(nil)
+			g := groups.Get(p.First()).GetOrZero()
 			g = append(g, p.Second())
 			groups.Put(p.First(), g)
 			return true
@@ -218,9 +219,9 @@ func aggregateByKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], kv kvstore.Ma
 func CountByKey[K comparable, V any](s Stream[pair.Pair[K, V]]) Stream[pair.Pair[K, int64]] {
 	return AggregateByKey(
 		s,
-		int64(0),
-		func(a int64, _ V) int64 { return a + 1 },
-		func(a int64) int64 { return a },
+		int64(0), // Initialize with 0.
+		func(a int64, _ V) int64 { return a + 1 }, // Accumulate: Add 1 to count.
+		mapper.Identity[int64](),                  // Finish: Return the count as is.
 	)
 }
 
@@ -243,9 +244,9 @@ func CountBySortedKey[K any, V any](s Stream[pair.Pair[K, V]], keyCompare cmp.Co
 	return AggregateBySortedKey(
 		s,
 		keyCompare,
-		int64(0),
-		func(a int64, _ V) int64 { return a + 1 },
-		func(a int64) int64 { return a },
+		int64(0), // Initialize with 0.
+		func(a int64, _ V) int64 { return a + 1 }, // Accumulate: Add 1 to count.
+		func(a int64) int64 { return a },          // Finish: Return the count as is.
 	)
 }
 

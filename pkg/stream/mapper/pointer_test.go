@@ -3,63 +3,63 @@ package mapper
 import (
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/optional"
-	"github.com/jpfourny/papaya/pkg/pointer"
+	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/pkg/ptr"
 )
 
-func TestPointerRef(t *testing.T) {
-	m := PointerRef[int]()
+func TestPtrRef(t *testing.T) {
+	m := PtrRef[int]()
 	got := m(42)
-	want := pointer.Ref(42)
+	want := ptr.Ref(42)
 	if *got != *want {
-		t.Errorf("*PointerRef()(42) = %#v; want %#v", *got, *want)
+		t.Errorf("*PtrRef()(42) = %#v; want %#v", *got, *want)
 	}
 }
 
-func TestPointerDeref(t *testing.T) {
-	m := PointerDeref[int]()
-	got := m(pointer.Ref(42))
-	want := optional.Of(42)
+func TestPtrDerefOptional(t *testing.T) {
+	m := PtrDerefOptional[int]()
+	got := m(ptr.Ref(42))
+	want := opt.Of(42)
 	if got != want {
-		t.Errorf("PointerDeref()(&42) = %#v; want %#v", got, want)
+		t.Errorf("PtrDerefOptional()(&42) = %#v; want %#v", got, want)
 	}
 
-	m = PointerDeref[int]()
+	m = PtrDerefOptional[int]()
 	got = m(nil)
-	want = optional.Empty[int]()
+	want = opt.Empty[int]()
 	if got != want {
-		t.Errorf("PointerDeref()(nil) = %#v; want %#v", got, want)
+		t.Errorf("PtrDerefOptional()(nil) = %#v; want %#v", got, want)
 	}
 }
 
-func TestPointerDerefOr(t *testing.T) {
-	m := PointerDerefOr[int](-1)
-	got := m(pointer.Ref(42))
+func TestPtrDerefOrDefault(t *testing.T) {
+	m := PtrDerefOrDefault[int](-1)
+	got := m(ptr.Ref(42))
 	want := 42
 	if got != want {
-		t.Errorf("PointerDerefOr(-1)(pointer.Ref(42)) = %#v; want %#v", got, want)
+		t.Errorf("PtrDerefOrDefault(-1)(ptr.Ref(42)) = %#v; want %#v", got, want)
 	}
 
-	m = PointerDerefOr[int](-1)
+	m = PtrDerefOrDefault[int](-1)
 	got = m(nil)
 	want = -1
 	if got != want {
-		t.Errorf("PointerDerefOr(-1)(nil) = %#v; want %#v", got, want)
+		t.Errorf("PtrDerefOrDefault(-1)(nil) = %#v; want %#v", got, want)
 	}
 }
 
-func TestPointerDerefOrZero(t *testing.T) {
-	m := PointerDerefOrZero[int]()
-	got := m(pointer.Ref(42))
+func TestPtrDerefOrZero(t *testing.T) {
+	m := PtrDerefOrZero[int]()
+	got := m(ptr.Ref(42))
 	want := 42
 	if got != want {
-		t.Errorf("PointerDerefOrZero()(pointer.Ref(42)) = %#v; want %#v", got, want)
+		t.Errorf("PtrDerefOrZero()(ptr.Ref(42)) = %#v; want %#v", got, want)
 	}
 
-	m = PointerDerefOrZero[int]()
+	m = PtrDerefOrZero[int]()
 	got = m(nil)
 	want = 0
 	if got != want {
-		t.Errorf("PointerDerefOrZero()(nil) = %#v; want %#v", got, want)
+		t.Errorf("PtrDerefOrZero()(nil) = %#v; want %#v", got, want)
 	}
 }

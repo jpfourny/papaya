@@ -5,7 +5,7 @@ import (
 
 	"github.com/jpfourny/papaya/pkg/cmp"
 	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 )
 
 // Mapper represents a function that transforms an input of type E to an output of type F.
@@ -13,11 +13,11 @@ import (
 // It must be idempotent, free of side effects, and thread-safe.
 type Mapper[E, F any] func(from E) (to F)
 
-// OptionalMapper represents a function that transforms an input of type E to an optional output of type F.
-// If the input cannot be transformed, the function must return an empty optional.
+// OptionalMapper represents a function that transforms an input of type E to an opt output of type F.
+// If the input cannot be transformed, the function must return an empty opt.
 // It is used in the MapOrDiscard operation.
 // It must be idempotent, free of side effects, and thread-safe.
-type OptionalMapper[E, F any] func(from E) optional.Optional[F]
+type OptionalMapper[E, F any] func(from E) opt.Optional[F]
 
 // Map applies a Mapper function to each element in a stream and returns a new stream containing the mapped elements.
 //
@@ -34,7 +34,7 @@ func Map[E, F any](s Stream[E], m Mapper[E, F]) Stream[F] {
 }
 
 // MapOrDiscard applies an OptionalMapper function to each element in a stream and returns a new stream containing the mapped elements.
-// If the OptionalMapper returns an empty optional, the element is discarded from the stream.
+// If the OptionalMapper returns an empty opt, the element is discarded from the stream.
 //
 // Example usage:
 //

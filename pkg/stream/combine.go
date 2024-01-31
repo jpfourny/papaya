@@ -2,7 +2,7 @@ package stream
 
 import (
 	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"github.com/jpfourny/papaya/pkg/pair"
 	"github.com/jpfourny/papaya/pkg/stream/mapper"
 	"github.com/jpfourny/papaya/pkg/stream/pred"
@@ -26,17 +26,17 @@ type Combiner[E1, E2, F any] func(E1, E2) F
 //	)
 //	out := stream.DebugString(s) // "<foo1, bar2>"
 func Combine[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine Combiner[E1, E2, F]) Stream[F] {
-	return CombineOrDiscard(s1, s2, func(e1 E1, e2 E2) optional.Optional[F] {
-		return optional.Of(combine(e1, e2))
+	return CombineOrDiscard(s1, s2, func(e1 E1, e2 E2) opt.Optional[F] {
+		return opt.Of(combine(e1, e2))
 	})
 }
 
-// OptionalCombiner represents a function that combines two elements of type E1 and E2 into an optional element of type F.
-// If the elements cannot be combined, the function must return an empty optional.
+// OptionalCombiner represents a function that combines two elements of type E1 and E2 into an opt element of type F.
+// If the elements cannot be combined, the function must return an empty opt.
 // It is used in the CombineOrDiscard operation.
-type OptionalCombiner[E1, E2, F any] func(E1, E2) optional.Optional[F]
+type OptionalCombiner[E1, E2, F any] func(E1, E2) opt.Optional[F]
 
-// CombineOrDiscard combines the elements of two streams into a single stream using the given OptionalCombiner function or discards them, if the combiner returns an empty optional.
+// CombineOrDiscard combines the elements of two streams into a single stream using the given OptionalCombiner function or discards them, if the combiner returns an empty opt.
 // The resulting stream will have at most the same number of elements as the shorter of the two input streams.
 //
 // Example usage:
@@ -44,11 +44,11 @@ type OptionalCombiner[E1, E2, F any] func(E1, E2) optional.Optional[F]
 //	s := stream.CombineOrDiscard(
 //	  stream.Of(1, 2, 3),
 //	  stream.Of("foo", "bar"),
-//	  func(i int, s string) optional.Optional[string] {
+//	  func(i int, s string) opt.Optional[string] {
 //	    if i == 2 {
-//	      return optional.Empty[string]()
+//	      return opt.Empty[string]()
 //	    }
-//	    return optional.Of(fmt.Sprintf("%s%d", s, i))
+//	    return opt.Of(fmt.Sprintf("%s%d", s, i))
 //	  },
 //	)
 //	out := stream.DebugString(s) // "<foo1>"
@@ -91,7 +91,7 @@ func CombineOrDiscard[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine Optio
 			}
 
 			if o := combine(e1, e2); o.Present() {
-				if !yield(o.Get()) {
+				if !yield(o.GetOrZero()) {
 					return false
 				}
 			}

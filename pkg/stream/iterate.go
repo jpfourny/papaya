@@ -2,7 +2,7 @@ package stream
 
 import (
 	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/optional"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"github.com/jpfourny/papaya/pkg/stream/mapper"
 	"github.com/jpfourny/papaya/pkg/stream/pred"
 )
@@ -33,23 +33,23 @@ func Iterate[E any](next func() (E, bool)) Stream[E] {
 }
 
 // IterateOptional returns a stream of elements produced by the given iterator function.
-// When the iterator function returns an empty optional.Optional, the stream ends.
+// When the iterator function returns an empty opt.Optional, the stream ends.
 //
 // Example usage:
 //
 //	i := 0
-//	s := stream.IterateOptional(func() optional.Optional[int] {
+//	s := stream.IterateOptional(func() opt.Optional[int] {
 //	  if i < 3 {
 //	    i++
-//	    return optional.Of(i)
+//	    return opt.Of(i)
 //	  }
-//	  return optional.Empty[int]()
+//	  return opt.Empty[int]()
 //	})
 //	out := stream.DebugString(s) // "<1, 2, 3>"
-func IterateOptional[E any](next func() optional.Optional[E]) Stream[E] {
+func IterateOptional[E any](next func() opt.Optional[E]) Stream[E] {
 	return func(yield Consumer[E]) bool {
 		for e := next(); e.Present(); e = next() {
-			if !yield(e.Get()) {
+			if !yield(e.GetOrZero()) {
 				return false
 			}
 		}
