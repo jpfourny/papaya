@@ -31,6 +31,15 @@ func TestFlatMap(t *testing.T) {
 	assert.ElementsMatch(t, got, want)
 }
 
+func TestFlatMapSlice(t *testing.T) {
+	s := FlatMapSlice(Of(1, 2, 3), func(e int) []string {
+		return []string{fmt.Sprintf("%dA", e), fmt.Sprintf("%dB", e)}
+	})
+	got := CollectSlice(s)
+	want := []string{"1A", "1B", "2A", "2B", "3A", "3B"}
+	assert.ElementsMatch(t, got, want)
+}
+
 func TestSortAsc(t *testing.T) {
 	s := SortAsc(Of(3, 1, 2))
 	got := CollectSlice(s)

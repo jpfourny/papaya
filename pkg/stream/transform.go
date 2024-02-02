@@ -52,14 +52,12 @@ func MapOrDiscard[E, F any](s Stream[E], m OptionalMapper[E, F]) Stream[F] {
 	}
 }
 
-// FlatMapper represents a function that takes an input of type E and returns an output stream of type F.
-// It is used to map each element of the input stream to a new stream of elements of type F.
-// The FlatMapper function is typically used as a parameter in the FlatMap function.
+// StreamMapper represents a function that takes an input of type E and returns an output stream of type F.
+// The StreamMapper function is typically used as a parameter of the FlatMap function.
 // It must be idempotent, free of side effects, and thread-safe.
-type FlatMapper[E, F any] func(from E) (to Stream[F])
+type StreamMapper[E, F any] func(from E) (to Stream[F])
 
-// FlatMap applies a FlatMapper function to each element in a stream and returns a new stream containing the mapped elements.
-// All mapped streams are flattened into a single stream.
+// FlatMap applies a StreamMapper function to each element from the given stream and flattens the returned streams into an output stream.
 //
 // Example usage:
 //
@@ -70,10 +68,34 @@ type FlatMapper[E, F any] func(from E) (to Stream[F])
 //	  },
 //	)
 //	out := stream.DebugString(s) // "<1, 1, 2, 2, 3, 3>"
-func FlatMap[E, F any](s Stream[E], fm FlatMapper[E, F]) Stream[F] {
+func FlatMap[E, F any](s Stream[E], m StreamMapper[E, F]) Stream[F] {
 	return func(yield Consumer[F]) bool {
 		return s(func(e E) bool {
-			return fm(e)(yield)
+			return m(e)(yield)
+		})
+	}
+}
+
+// SliceMapper represents a function that takes an input of type E and returns an output slice of type F.
+// The SliceMapper function is typically used as a parameter of the FlatMapSlice function.
+// It must be idempotent, free of side effects, and thread-safe.
+type SliceMapper[E, F any] func(from E) (to []F)
+
+// FlatMapSlice applies a SliceMapper function to each element from the given stream and flattens the returned slices into an output stream.
+//
+// Example usage:
+//
+//	s := stream.FlatMapSlice(
+//	  stream.Of(1, 2, 3),
+//	  func(e int) []string { // e -> ["e", "e"]
+//	    return []string{mapper.Sprint(e), mapper.Sprint(e)}
+//	  },
+//	)
+//	out := stream.DebugString(s) // "<1, 1, 2, 2, 3, 3>"
+func FlatMapSlice[E, F any](s Stream[E], m SliceMapper[E, F]) Stream[F] {
+	return func(yield Consumer[F]) bool {
+		return s(func(e E) bool {
+			return FromSlice(m(e))(yield)
 		})
 	}
 }
