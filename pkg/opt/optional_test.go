@@ -94,6 +94,68 @@ func TestMap(t *testing.T) {
 	})
 }
 
+func TestMaybeMap(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+
+		t.Run("Map-to-Some", func(t *testing.T) {
+			m := MaybeMap(o, func(i int) (int, bool) { return 42, true })
+			if !m.Present() {
+				t.Errorf("expected Present() to be true")
+			}
+			if m.GetOrZero() != 42 {
+				t.Errorf("expected Get() to return 42")
+			}
+		})
+
+		t.Run("Map-to-None", func(t *testing.T) {
+			m := MaybeMap(o, func(i int) (int, bool) { return 42, false })
+			if m.Present() {
+				t.Errorf("expected Present() to be false")
+			}
+		})
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		m := MaybeMap(o, func(i int) (int, bool) { return i, true })
+		if m.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+	})
+}
+
+func TestOptionalMap(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		o := Of(42)
+
+		t.Run("Map-to-Some", func(t *testing.T) {
+			m := OptionalMap(o, func(i int) Optional[string] { return Of("foo") })
+			if !m.Present() {
+				t.Errorf("expected Present() to be true")
+			}
+			if m.GetOrZero() != "foo" {
+				t.Errorf("expected Get() to return %q", "foo")
+			}
+		})
+
+		t.Run("Map-to-None", func(t *testing.T) {
+			m := OptionalMap(o, func(i int) Optional[string] { return Empty[string]() })
+			if m.Present() {
+				t.Errorf("expected Present() to be false")
+			}
+		})
+	})
+
+	t.Run("None", func(t *testing.T) {
+		o := Empty[int]()
+		m := OptionalMap(o, func(i int) Optional[string] { return Of("foo") })
+		if m.Present() {
+			t.Errorf("expected Present() to be false")
+		}
+	})
+}
+
 func TestPresent(t *testing.T) {
 	t.Run("Some", func(t *testing.T) {
 		o := Of(42)

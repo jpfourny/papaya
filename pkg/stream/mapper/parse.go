@@ -13,10 +13,7 @@ import (
 func TryParseBool[E constraint.String]() func(E) opt.Optional[bool] {
 	return func(e E) opt.Optional[bool] {
 		b, err := strconv.ParseBool(string(e))
-		if err != nil {
-			return opt.Empty[bool]()
-		}
-		return opt.Of[bool](b)
+		return opt.Maybe(b, err == nil)
 	}
 }
 
@@ -25,11 +22,7 @@ func TryParseBool[E constraint.String]() func(E) opt.Optional[bool] {
 // See the documentation for strconv.ParseBool for details.
 func ParseBoolOr[E constraint.String](or bool) func(E) bool {
 	return func(e E) bool {
-		b, err := strconv.ParseBool(string(e))
-		if err != nil {
-			return or
-		}
-		return b
+		return TryParseBool[E]()(e).GetOrDefault(or)
 	}
 }
 
@@ -40,10 +33,7 @@ func ParseBoolOr[E constraint.String](or bool) func(E) bool {
 func TryParseInt[E constraint.String, F constraint.SignedInteger](base int, bitSize int) func(E) opt.Optional[F] {
 	return func(e E) opt.Optional[F] {
 		i, err := strconv.ParseInt(string(e), base, bitSize)
-		if err != nil {
-			return opt.Empty[F]()
-		}
-		return opt.Of(F(i))
+		return opt.Maybe(F(i), err == nil)
 	}
 }
 
@@ -53,11 +43,7 @@ func TryParseInt[E constraint.String, F constraint.SignedInteger](base int, bitS
 // See the documentation for strconv.ParseInt for details.
 func ParseIntOr[E constraint.String, F constraint.SignedInteger](base int, bitSize int, or F) func(E) F {
 	return func(e E) F {
-		i, err := strconv.ParseInt(string(e), base, bitSize)
-		if err != nil {
-			return or
-		}
-		return F(i)
+		return TryParseInt[E, F](base, bitSize)(e).GetOrDefault(or)
 	}
 }
 
@@ -68,10 +54,7 @@ func ParseIntOr[E constraint.String, F constraint.SignedInteger](base int, bitSi
 func TryParseUint[E constraint.String, F constraint.UnsignedInteger](base int, bitSize int) func(E) opt.Optional[F] {
 	return func(e E) opt.Optional[F] {
 		i, err := strconv.ParseUint(string(e), base, bitSize)
-		if err != nil {
-			return opt.Empty[F]()
-		}
-		return opt.Of(F(i))
+		return opt.Maybe(F(i), err == nil)
 	}
 }
 
@@ -81,11 +64,7 @@ func TryParseUint[E constraint.String, F constraint.UnsignedInteger](base int, b
 // See the documentation for strconv.ParseUint for details.
 func ParseUintOr[E constraint.String, F constraint.UnsignedInteger](base int, bitSize int, or F) func(E) F {
 	return func(e E) F {
-		i, err := strconv.ParseUint(string(e), base, bitSize)
-		if err != nil {
-			return or
-		}
-		return F(i)
+		return TryParseUint[E, F](base, bitSize)(e).GetOrDefault(or)
 	}
 }
 
@@ -96,10 +75,7 @@ func ParseUintOr[E constraint.String, F constraint.UnsignedInteger](base int, bi
 func TryParseFloat[E constraint.String, F constraint.Float](bitSize int) func(E) opt.Optional[F] {
 	return func(e E) opt.Optional[F] {
 		f, err := strconv.ParseFloat(string(e), bitSize)
-		if err != nil {
-			return opt.Empty[F]()
-		}
-		return opt.Of(F(f))
+		return opt.Maybe(F(f), err == nil)
 	}
 }
 
@@ -109,11 +85,7 @@ func TryParseFloat[E constraint.String, F constraint.Float](bitSize int) func(E)
 // See the documentation for strconv.ParseFloat for details.
 func ParseFloatOr[E constraint.String, F constraint.Float](bitSize int, or F) func(E) F {
 	return func(e E) F {
-		f, err := strconv.ParseFloat(string(e), bitSize)
-		if err != nil {
-			return or
-		}
-		return F(f)
+		return TryParseFloat[E, F](bitSize)(e).GetOrDefault(or)
 	}
 }
 
@@ -124,10 +96,7 @@ func ParseFloatOr[E constraint.String, F constraint.Float](bitSize int, or F) fu
 func TryParseComplex[E constraint.String, F constraint.Complex](bitSize int) func(E) opt.Optional[F] {
 	return func(e E) opt.Optional[F] {
 		c, err := strconv.ParseComplex(string(e), bitSize)
-		if err != nil {
-			return opt.Empty[F]()
-		}
-		return opt.Of(F(c))
+		return opt.Maybe(F(c), err == nil)
 	}
 }
 
@@ -137,10 +106,6 @@ func TryParseComplex[E constraint.String, F constraint.Complex](bitSize int) fun
 // See the documentation for strconv.ParseComplex for details.
 func ParseComplexOr[E constraint.String, F constraint.Complex](bitSize int, or F) func(E) F {
 	return func(e E) F {
-		c, err := strconv.ParseComplex(string(e), bitSize)
-		if err != nil {
-			return or
-		}
-		return F(c)
+		return TryParseComplex[E, F](bitSize)(e).GetOrDefault(or)
 	}
 }

@@ -31,8 +31,8 @@ func Any[V any](options ...Optional[V]) Optional[V] {
 	return None[V]{}
 }
 
-// Map returns an Optional containing the result of applying the provided function to the value contained in the provided Optional.
-// If the provided Optional is empty, an empty Optional is returned.
+// Map returns an Optional containing the result of applying the provided mapper function to the value contained in the provided Optional.
+// If the provided Optional is empty, an empty Optional is returned; otherwise, a non-empty Optional is returned.
 //
 // Example usage:
 //
@@ -48,6 +48,58 @@ func Any[V any](options ...Optional[V]) Optional[V] {
 func Map[V, U any](o Optional[V], mapper func(V) U) Optional[U] {
 	if value, ok := o.Get(); ok {
 		return Of[U](mapper(value))
+	}
+	return Empty[U]()
+}
+
+// OptionalMap returns an Optional containing the result of applying the provided mapper function to the value contained in the provided Optional.
+// If the provided Optional is empty, of if the mapper returns an empty Optional, an empty Optional is returned; otherwise, a non-empty Optional is returned.
+//
+// Example usage:
+//
+//	o := opt.OptionalMap(
+//	  opt.Of(1),
+//	  func(i int) opt.Optional[string] { return opt.Of(fmt.Sprintf("%d", i)) },
+//	) // opt.Some("1")
+//
+//	o = opt.OptionalMap(
+//	  opt.Of(1),
+//	  func(i int) opt.Optional[string] { return opt.Empty[string]() },
+//	) // opt.None()
+//
+//	o = opt.OptionalMap(
+//	  opt.Empty[int](),
+//	  func(i int) opt.Optional[string] { return opt.Of(fmt.Sprintf("%d", i)) },
+//	) // opt.None()
+func OptionalMap[V, U any](o Optional[V], mapper func(V) Optional[U]) Optional[U] {
+	if value, ok := o.Get(); ok {
+		return mapper(value)
+	}
+	return Empty[U]()
+}
+
+// MaybeMap returns an Optional containing the result of applying the provided mapper function to the value contained in the provided Optional.
+// If the provided Optional is empty, or if the mapper returns false, an empty Optional is returned; otherwise, a non-empty Optional is returned.
+//
+// Example usage:
+//
+//	o := opt.MaybeMap(
+//	  opt.Of(1),
+//	  func(i int) (string, bool) { return fmt.Sprintf("%d", i), true },
+//	) // opt.Some("1")
+//
+//	o = opt.MaybeMap(
+//	  opt.Of(1),
+//	  func(i int) (string, bool) { return fmt.Sprintf("%d", i), false },
+//	) // opt.None()
+//
+//	o = opt.MaybeMap(
+//	  opt.Empty[int](),
+//	  func(i int) (string, bool) { return fmt.Sprintf("%d", i), true },
+//	) // opt.None()
+func MaybeMap[V, U any](o Optional[V], mapper func(V) (U, bool)) Optional[U] {
+	if value, ok := o.Get(); ok {
+		return Maybe(mapper(value))
 	}
 	return Empty[U]()
 }
