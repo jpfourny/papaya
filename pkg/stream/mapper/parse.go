@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/opt"
@@ -107,5 +108,66 @@ func TryParseComplex[E constraint.String, F constraint.Complex](bitSize int) fun
 func ParseComplexOr[E constraint.String, F constraint.Complex](bitSize int, or F) func(E) F {
 	return func(e E) F {
 		return TryParseComplex[E, F](bitSize)(e).GetOrDefault(or)
+	}
+}
+
+// TryParseDuration returns a function that accepts a value of any string type and returns the result of calling time.ParseDuration on it.
+// If the string cannot be parsed as a duration, then an empty opt is returned.
+// See the documentation for time.ParseDuration for details.
+func TryParseDuration[E constraint.String]() func(E) opt.Optional[time.Duration] {
+	return func(e E) opt.Optional[time.Duration] {
+		d, err := time.ParseDuration(string(e))
+		return opt.Maybe(d, err == nil)
+	}
+}
+
+// ParseDurationOr returns a function that accepts a value of any string type and returns the result of calling time.ParseDuration on it.
+// If the string cannot be parsed as a duration, the provided `or` default value is returned.
+// See the documentation for time.ParseDuration for details.
+func ParseDurationOr[E constraint.String](or time.Duration) func(E) time.Duration {
+	return func(e E) time.Duration {
+		return TryParseDuration[E]()(e).GetOrDefault(or)
+	}
+}
+
+// TryParseTime returns a function that accepts a value of any string type and returns the result of calling time.Parse on it.
+// If the string cannot be parsed as a time, then an empty opt is returned.
+// The `layout` parameter is passed as a parameter to time.Parse.
+// See the documentation for time.Parse for details.
+func TryParseTime[E constraint.String](layout string) func(E) opt.Optional[time.Time] {
+	return func(e E) opt.Optional[time.Time] {
+		t, err := time.Parse(layout, string(e))
+		return opt.Maybe(t, err == nil)
+	}
+}
+
+// ParseTimeOr returns a function that accepts a value of any string type and returns the result of calling time.Parse on it.
+// If the string cannot be parsed as a time, the provided `or` default value is returned.
+// The `layout` parameter is passed as a parameter to time.Parse.
+// See the documentation for time.Parse for details.
+func ParseTimeOr[E constraint.String](layout string, or time.Time) func(E) time.Time {
+	return func(e E) time.Time {
+		return TryParseTime[E](layout)(e).GetOrDefault(or)
+	}
+}
+
+// TryParseTimeInLocation returns a function that accepts a value of any string type and returns the result of calling time.ParseInLocation on it.
+// If the string cannot be parsed as a time, then an empty opt is returned.
+// The `layout` and `loc` parameters are passed as parameters to time.ParseInLocation.
+// See the documentation for time.ParseInLocation for details.
+func TryParseTimeInLocation[E constraint.String](layout string, loc *time.Location) func(E) opt.Optional[time.Time] {
+	return func(e E) opt.Optional[time.Time] {
+		t, err := time.ParseInLocation(layout, string(e), loc)
+		return opt.Maybe(t, err == nil)
+	}
+}
+
+// ParseTimeInLocationOr returns a function that accepts a value of any string type and returns the result of calling time.ParseInLocation on it.
+// If the string cannot be parsed as a time, the provided `or` default value is returned.
+// The `layout` and `loc` parameters are passed as parameters to time.ParseInLocation.
+// See the documentation for time.ParseInLocation for details.
+func ParseTimeInLocationOr[E constraint.String](layout string, loc *time.Location, or time.Time) func(E) time.Time {
+	return func(e E) time.Time {
+		return TryParseTimeInLocation[E](layout, loc)(e).GetOrDefault(or)
 	}
 }

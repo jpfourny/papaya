@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"testing"
+	"time"
 
 	"github.com/jpfourny/papaya/pkg/opt"
 )
@@ -230,5 +231,145 @@ func TestParseComplexOr(t *testing.T) {
 	want128 = complex128(-1)
 	if got128 != want128 {
 		t.Errorf("ParseComplexOr(128, 0)(`foo`) = %#v; want %#v", got128, want128)
+	}
+}
+
+func TestTryParseDuration(t *testing.T) {
+	m := TryParseDuration[string]()
+	got := m("1s")
+	want := opt.Of(time.Second)
+	if got != want {
+		t.Errorf("TryParseDuration()(`1s`) = %#v; want %#v", got, want)
+	}
+
+	m = TryParseDuration[string]()
+	got = m("foo")
+	want = opt.Empty[time.Duration]()
+	if got != want {
+		t.Errorf("TryParseDuration()(`foo`) = %#v; want %#v", got, want)
+	}
+
+	m = TryParseDuration[string]()
+	got = m("")
+	want = opt.Empty[time.Duration]()
+	if got != want {
+		t.Errorf("TryParseDuration()(``) = %#v; want %#v", got, want)
+	}
+}
+
+func TestParseDurationOr(t *testing.T) {
+	m := ParseDurationOr[string](time.Second)
+	got := m("1s")
+	want := time.Second
+	if got != want {
+		t.Errorf("ParseDurationOr(time.Second)(`1s`) = %#v; want %#v", got, want)
+	}
+
+	m = ParseDurationOr[string](time.Second)
+	got = m("foo")
+	want = time.Second
+	if got != want {
+		t.Errorf("ParseDurationOr(time.Second)(`foo`) = %#v; want %#v", got, want)
+	}
+
+	m = ParseDurationOr[string](time.Second)
+	got = m("")
+	want = time.Second
+	if got != want {
+		t.Errorf("ParseDurationOr(time.Second)(``) = %#v; want %#v", got, want)
+	}
+}
+
+func TestTryParseTime(t *testing.T) {
+	m := TryParseTime[string](time.RFC3339)
+	got := m("2006-01-02T15:04:05Z")
+	want := opt.Of(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+	if got != want {
+		t.Errorf("TryParseTime(time.RFC3339)(`2006-01-02T15:04:05Z`) = %#v; want %#v", got, want)
+	}
+
+	m = TryParseTime[string](time.RFC3339)
+	got = m("foo")
+	want = opt.Empty[time.Time]()
+	if got != want {
+		t.Errorf("TryParseTime(time.RFC3339)(`foo`) = %#v; want %#v", got, want)
+	}
+
+	m = TryParseTime[string](time.RFC3339)
+	got = m("")
+	want = opt.Empty[time.Time]()
+	if got != want {
+		t.Errorf("TryParseTime(time.RFC3339)(``) = %#v; want %#v", got, want)
+	}
+}
+
+func TestParseTimeOr(t *testing.T) {
+	m := ParseTimeOr[string](time.RFC3339, time.Time{})
+	got := m("2006-01-02T15:04:05Z")
+	want := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+	if got != want {
+		t.Errorf("ParseTimeOr(time.RFC3339, time.Time{})(`2006-01-02T15:04:05Z`) = %#v; want %#v", got, want)
+	}
+
+	m = ParseTimeOr[string](time.RFC3339, time.Time{})
+	got = m("foo")
+	want = time.Time{}
+	if got != want {
+		t.Errorf("ParseTimeOr(time.RFC3339, time.Time{})(`foo`) = %#v; want %#v", got, want)
+	}
+
+	m = ParseTimeOr[string](time.RFC3339, time.Time{})
+	got = m("")
+	want = time.Time{}
+	if got != want {
+		t.Errorf("ParseTimeOr(time.RFC3339, time.Time{})(``) = %#v; want %#v", got, want)
+	}
+}
+
+func TestTryParseTimeInLocation(t *testing.T) {
+	loc := time.UTC
+	m := TryParseTimeInLocation[string](time.RFC3339, loc)
+	got := m("2006-01-02T15:04:05Z")
+	want := opt.Of(time.Date(2006, 1, 2, 15, 4, 5, 0, loc))
+	if got != want {
+		t.Errorf("TryParseTimeInLocation(time.RFC3339, loc)(`2006-01-02T15:04:05Z`) = %#v; want %#v", got, want)
+	}
+
+	m = TryParseTimeInLocation[string](time.RFC3339, loc)
+	got = m("foo")
+	want = opt.Empty[time.Time]()
+	if got != want {
+		t.Errorf("TryParseTimeInLocation(time.RFC3339, loc)(`foo`) = %#v; want %#v", got, want)
+	}
+
+	m = TryParseTimeInLocation[string](time.RFC3339, loc)
+	got = m("")
+	want = opt.Empty[time.Time]()
+	if got != want {
+		t.Errorf("TryParseTimeInLocation(time.RFC3339, loc)(``) = %#v; want %#v", got, want)
+	}
+}
+
+func TestParseTimeInLocationOr(t *testing.T) {
+	loc := time.UTC
+	m := ParseTimeInLocationOr[string](time.RFC3339, loc, time.Time{})
+	got := m("2006-01-02T15:04:05Z")
+	want := time.Date(2006, 1, 2, 15, 4, 5, 0, loc)
+	if got != want {
+		t.Errorf("ParseTimeInLocationOr(time.RFC3339, loc, time.Time{})(`2006-01-02T15:04:05Z`) = %#v; want %#v", got, want)
+	}
+
+	m = ParseTimeInLocationOr[string](time.RFC3339, loc, time.Time{})
+	got = m("foo")
+	want = time.Time{}
+	if got != want {
+		t.Errorf("ParseTimeInLocationOr(time.RFC3339, loc, time.Time{})(`foo`) = %#v; want %#v", got, want)
+	}
+
+	m = ParseTimeInLocationOr[string](time.RFC3339, loc, time.Time{})
+	got = m("")
+	want = time.Time{}
+	if got != want {
+		t.Errorf("ParseTimeInLocationOr(time.RFC3339, loc, time.Time{})(``) = %#v; want %#v", got, want)
 	}
 }

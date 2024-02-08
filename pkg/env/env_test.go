@@ -5,6 +5,7 @@ import (
 	"github.com/jpfourny/papaya/pkg/stream"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestSet(t *testing.T) {
@@ -176,6 +177,69 @@ func TestGetFloat(t *testing.T) {
 	got = GetFloat[float64]("foo")
 	if got.Present() {
 		t.Errorf("expected GetFloat(%q) to return empty opt; got %v", "foo", got)
+	}
+}
+
+func TestGetDuration(t *testing.T) {
+	_ = os.Setenv("foo", "1s")
+
+	got := GetDuration("foo")
+	if !got.Present() || got.GetOrZero() != time.Second {
+		t.Errorf("expected GetDuration(%q) to return 1s; got %v", "foo", got)
+	}
+
+	got = GetDuration("baz")
+	if got.Present() {
+		t.Errorf("expected GetDuration(%q) to return empty opt; got %v", "baz", got)
+	}
+
+	_ = os.Setenv("foo", "not-a-duration")
+
+	got = GetDuration("foo")
+	if got.Present() {
+		t.Errorf("expected GetDuration(%q) to return empty opt; got %v", "foo", got)
+	}
+}
+
+func TestGetTime(t *testing.T) {
+	_ = os.Setenv("foo", "2006-01-02T15:04:05Z")
+
+	got := GetTime("foo", time.RFC3339)
+	if !got.Present() || got.GetOrZero().Format(time.RFC3339) != "2006-01-02T15:04:05Z" {
+		t.Errorf("expected GetTime(%q, %q) to return 2006-01-02T15:04:05Z; got %v", "foo", time.RFC3339, got)
+	}
+
+	got = GetTime("baz", time.RFC3339)
+	if got.Present() {
+		t.Errorf("expected GetTime(%q, %q) to return empty opt; got %v", "baz", time.RFC3339, got)
+	}
+
+	_ = os.Setenv("foo", "not-a-time")
+
+	got = GetTime("foo", time.RFC3339)
+	if got.Present() {
+		t.Errorf("expected GetTime(%q, %q) to return empty opt; got %v", "foo", time.RFC3339, got)
+	}
+}
+
+func TestGetTimeInLocation(t *testing.T) {
+	_ = os.Setenv("foo", "2006-01-02T15:04:05Z")
+
+	got := GetTimeInLocation("foo", time.RFC3339, time.UTC)
+	if !got.Present() || got.GetOrZero().Format(time.RFC3339) != "2006-01-02T15:04:05Z" {
+		t.Errorf("expected GetTimeInLocation(%q, %q, %v) to return 2006-01-02T15:04:05Z; got %v", "foo", time.RFC3339, time.UTC, got)
+	}
+
+	got = GetTimeInLocation("baz", time.RFC3339, time.UTC)
+	if got.Present() {
+		t.Errorf("expected GetTimeInLocation(%q, %q, %v) to return empty opt; got %v", "baz", time.RFC3339, time.UTC, got)
+	}
+
+	_ = os.Setenv("foo", "not-a-time")
+
+	got = GetTimeInLocation("foo", time.RFC3339, time.UTC)
+	if got.Present() {
+		t.Errorf("expected GetTimeInLocation(%q, %q, %v) to return empty opt; got %v", "foo", time.RFC3339, time.UTC, got)
 	}
 }
 

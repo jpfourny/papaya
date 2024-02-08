@@ -8,6 +8,7 @@ import (
 	"github.com/jpfourny/papaya/pkg/stream/mapper"
 	"os"
 	"strings"
+	"time"
 )
 
 // Set sets the environment variable with the given key to the given value.
@@ -69,6 +70,8 @@ func GetBool(key string) opt.Optional[bool] {
 	)
 }
 
+// GetInt returns the value of the environment variable with the given key, if it exists and can be parsed as an integer of the desired type I.
+// An empty Optional is returned if the variable is unset or if value cannot be parsed as an integer.
 func GetInt[I constraint.SignedInteger](key string) opt.Optional[I] {
 	return opt.OptionalMap(
 		Get(key),
@@ -76,6 +79,8 @@ func GetInt[I constraint.SignedInteger](key string) opt.Optional[I] {
 	)
 }
 
+// GetUInt returns the value of the environment variable with the given key, if it exists and can be parsed as an unsigned integer of the desired type I.
+// An empty Optional is returned if the variable is unset or if value cannot be parsed as an unsigned integer.
 func GetUInt[I constraint.UnsignedInteger](key string) opt.Optional[I] {
 	return opt.OptionalMap(
 		Get(key),
@@ -83,10 +88,42 @@ func GetUInt[I constraint.UnsignedInteger](key string) opt.Optional[I] {
 	)
 }
 
+// GetFloat returns the value of the environment variable with the given key, if it exists and can be parsed as a float of the desired type F.
+// An empty Optional is returned if the variable is unset or if value cannot be parsed as a float.
 func GetFloat[F constraint.Float](key string) opt.Optional[F] {
 	return opt.OptionalMap(
 		Get(key),
 		mapper.TryParseFloat[string, F](64),
+	)
+}
+
+// GetDuration returns the value of the environment variable with the given key, if it exists and can be parsed as a duration.
+// An empty Optional is returned if the variable is unset or if value cannot be parsed as a duration.
+// See time.ParseDuration for details on the expected format.
+func GetDuration(key string) opt.Optional[time.Duration] {
+	return opt.OptionalMap(
+		Get(key),
+		mapper.TryParseDuration[string](),
+	)
+}
+
+// GetTime returns the value of the environment variable with the given key, if it exists and can be parsed as a time.Time with the given layout.
+// An empty Optional is returned if the variable is unset or if value cannot be parsed as a time.Time.
+// See time.Parse for details on the expected format.
+func GetTime(key string, layout string) opt.Optional[time.Time] {
+	return opt.OptionalMap(
+		Get(key),
+		mapper.TryParseTime[string](layout),
+	)
+}
+
+// GetTimeInLocation returns the value of the environment variable with the given key, if it exists and can be parsed as a time.Time with the given layout and location.
+// An empty Optional is returned if the variable is unset or if value cannot be parsed as a time.Time.
+// See time.ParseInLocation for details on the expected format.
+func GetTimeInLocation(key string, layout string, loc *time.Location) opt.Optional[time.Time] {
+	return opt.OptionalMap(
+		Get(key),
+		mapper.TryParseTimeInLocation[string](layout, loc),
 	)
 }
 
