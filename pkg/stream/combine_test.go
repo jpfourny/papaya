@@ -153,3 +153,41 @@ func TestZipWithIndex(t *testing.T) {
 		assert.ElementsMatch(t, got, want)
 	})
 }
+
+func TestUnzipFirst(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := UnzipFirst(Empty[pair.Pair[int, string]]())
+		got := CollectSlice(s)
+		var want []int
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := UnzipFirst(Of(
+			pair.Of(1, "foo"),
+			pair.Of(2, "bar"),
+		))
+		got := CollectSlice(s)
+		want := []int{1, 2}
+		assert.ElementsMatch(t, got, want)
+	})
+}
+
+func TestUnzipSecond(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := UnzipSecond(Empty[pair.Pair[int, string]]())
+		got := CollectSlice(s)
+		var want []string
+		assert.ElementsMatch(t, got, want)
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := UnzipSecond(Of(
+			pair.Of(1, "foo"),
+			pair.Of(2, "bar"),
+		))
+		got := CollectSlice(s)
+		want := []string{"foo", "bar"}
+		assert.ElementsMatch(t, got, want)
+	})
+}

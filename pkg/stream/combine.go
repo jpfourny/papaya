@@ -120,3 +120,37 @@ func Zip[E, F any](s1 Stream[E], s2 Stream[F]) Stream[pair.Pair[E, F]] {
 func ZipWithIndex[E any, I constraint.Integer](s Stream[E], offset I) Stream[pair.Pair[E, I]] {
 	return Zip(s, Walk(offset, pred.True[I](), mapper.Increment[I](1)))
 }
+
+// UnzipFirst returns a stream that contains the first elements of each pair in the input stream.
+//
+// Example usage:
+//
+//	s := stream.UnzipFirst(
+//	  stream.Of(
+//	    pair.Of(1, "foo"),
+//	    pair.Of(2, "bar"),
+//	  ),
+//	)
+//	out := stream.DebugString(s) // "<1, 2>"
+func UnzipFirst[E, F any](s Stream[pair.Pair[E, F]]) Stream[E] {
+	return Map(s, func(p pair.Pair[E, F]) E {
+		return p.First()
+	})
+}
+
+// UnzipSecond returns a stream that contains the second elements of each pair in the input stream.
+//
+// Example usage:
+//
+//	s := stream.UnzipSecond(
+//	  stream.Of(
+//	    pair.Of(1, "foo"),
+//	    pair.Of(2, "bar"),
+//	  ),
+//	)
+//	out := stream.DebugString(s) // "<foo, bar>"
+func UnzipSecond[E, F any](s Stream[pair.Pair[E, F]]) Stream[F] {
+	return Map(s, func(p pair.Pair[E, F]) F {
+		return p.Second()
+	})
+}
