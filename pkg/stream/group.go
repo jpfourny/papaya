@@ -225,6 +225,22 @@ func CountByKey[K comparable, V any](s Stream[pair.Pair[K, V]]) Stream[pair.Pair
 	)
 }
 
+// CountByValue returns a stream that counts the number of elements for each value.
+// The resulting stream contains key-value pairs where the key is the same, and the value is the number of elements that had that value.
+// The order of the elements is not guaranteed.
+//
+// Example usage:
+//
+//	s := stream.CountByValue(
+//	  stream.Of(1, 2, 3, 1, 2),
+//	)
+//	out := stream.DebugString(s) // "<(1, 2), (2, 2), (3, 1)>"
+func CountByValue[V comparable](s Stream[V]) Stream[pair.Pair[V, int64]] {
+	return CountByKey(
+		Map(s, func(v V) pair.Pair[V, struct{}] { return pair.Of(v, struct{}{}) }),
+	)
+}
+
 // CountBySortedKey returns a stream that counts the number of elements for each key using the given cmp.Comparer to compare keys.
 // The resulting stream contains key-value pairs where the key is the same, and the value is the number of elements that had that key.
 // The order of the elements is determined by the given cmp.Comparer.
@@ -247,6 +263,24 @@ func CountBySortedKey[K any, V any](s Stream[pair.Pair[K, V]], keyCompare cmp.Co
 		int64(0), // Initialize with 0.
 		func(a int64, _ V) int64 { return a + 1 }, // Accumulate: Add 1 to count.
 		func(a int64) int64 { return a },          // Finish: Return the count as is.
+	)
+}
+
+// CountBySortedValue returns a stream that counts the number of elements for each value using the given cmp.Comparer to compare values.
+// The resulting stream contains key-value pairs where the key is the same, and the value is the number of elements that had that value.
+// The order of the elements is determined by the given cmp.Comparer.
+//
+// Example usage:
+//
+//	s := stream.CountBySortedValue(
+//	  stream.Of(1, 2, 3, 1, 2),
+//	  cmp.Natural[int](), // Compare values naturally
+//	)
+//	out := stream.DebugString(s) // "<(1, 2), (2, 2), (3, 1)>"
+func CountBySortedValue[V any](s Stream[V], valueCompare cmp.Comparer[V]) Stream[pair.Pair[V, int64]] {
+	return CountBySortedKey(
+		Map(s, func(v V) pair.Pair[V, struct{}] { return pair.Of(v, struct{}{}) }),
+		valueCompare,
 	)
 }
 

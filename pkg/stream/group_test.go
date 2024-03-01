@@ -442,6 +442,42 @@ func TestCountByKey(t *testing.T) {
 	})
 }
 
+func TestCountByValue(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := CountByValue(Empty[int]())
+		got := CollectMap(s)
+		if len(got) != 0 {
+			t.Fatalf("got %#v, want %#v", got, map[string]int{})
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := CountByValue(Of(1, 2, 1, 3, 2))
+		got := CollectMap(s)
+		want := map[int]int64{
+			1: 2,
+			2: 2,
+			3: 1,
+		}
+		if len(got) != len(want) {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		for k, v := range want {
+			if got[k] != v {
+				t.Fatalf("got %#v, want %#v", got[k], want[k])
+			}
+		}
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := CountByValue(Of(1, 2, 1, 3, 2))
+		got := CollectMap(Limit(s, 1)) // Stops stream after 1 elements.
+		if len(got) != 1 {
+			t.Fatal("expected 1 element; got", len(got)) // Actual value is unpredictable due to map iteration order.
+		}
+	})
+}
+
 func TestCountBySortedKey(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		s := CountBySortedKey(Empty[pair.Pair[int, string]](), cmp.Natural[int]())
@@ -483,6 +519,42 @@ func TestCountBySortedKey(t *testing.T) {
 			pair.Of(3, "three"),
 			pair.Of(2, "dos"),
 		), cmp.Natural[int]())
+		got := CollectMap(Limit(s, 1)) // Stops stream after 1 elements.
+		if len(got) != 1 {
+			t.Fatal("expected 1 element; got", len(got)) // Actual value is unpredictable due to map iteration order.
+		}
+	})
+}
+
+func TestCountBySortedValue(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		s := CountBySortedValue(Empty[int](), cmp.Natural[int]())
+		got := CollectMap(s)
+		if len(got) != 0 {
+			t.Fatalf("got %#v, want %#v", got, map[int]int{})
+		}
+	})
+
+	t.Run("non-empty", func(t *testing.T) {
+		s := CountBySortedValue(Of(1, 2, 1, 3, 2), cmp.Natural[int]())
+		got := CollectMap(s)
+		want := map[int]int64{
+			1: 2,
+			2: 2,
+			3: 1,
+		}
+		if len(got) != len(want) {
+			t.Fatalf("got %#v, want %#v", got, want)
+		}
+		for k, v := range want {
+			if got[k] != v {
+				t.Fatalf("got %#v, want %#v", got[k], want[k])
+			}
+		}
+	})
+
+	t.Run("limited", func(t *testing.T) {
+		s := CountBySortedValue(Of(1, 2, 1, 3, 2), cmp.Natural[int]())
 		got := CollectMap(Limit(s, 1)) // Stops stream after 1 elements.
 		if len(got) != 1 {
 			t.Fatal("expected 1 element; got", len(got)) // Actual value is unpredictable due to map iteration order.
