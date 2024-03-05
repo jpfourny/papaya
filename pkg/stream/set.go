@@ -149,3 +149,107 @@ func difference[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) Stream[E
 		})
 	}
 }
+
+// SymmetricDifference returns a stream that contains elements that are in either of the given streams, but not in both.
+// The element type E must be comparable.
+// The order of the elements is not guaranteed.
+//
+// Example usage:
+//
+//	s := stream.SymmetricDifference(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6))
+//	out := stream.DebugString(s) // "<1, 2, 3, 6>"
+func SymmetricDifference[E comparable](s1, s2 Stream[E]) Stream[E] {
+	return Union(Difference(s1, s2), Difference(s2, s1))
+}
+
+// SymmetricDifferenceBy returns a stream that contains elements that are in either of the given streams, but not in both, compared by the given cmp.Comparer.
+// The order of the elements is not guaranteed.
+//
+// Example usage:
+//
+//	s := stream.SymmetricDifferenceBy(stream.Of(1, 2, 3, 4, 5), stream.Of(4, 5, 6), cmp.Natural[int]())
+//	out := stream.DebugString(s) // "<1, 2, 3, 6>"
+func SymmetricDifferenceBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) Stream[E] {
+	return Union(DifferenceBy(s1, s2, compare), DifferenceBy(s2, s1, compare))
+}
+
+// Subset returns true if all elements of the first stream are in the second stream.
+// The element type E must be comparable.
+//
+// Example usage:
+//
+//	ok := stream.Subset(stream.Of(1, 2), stream.Of(1, 2, 3, 4))
+//	fmt.Println(ok) // "true"
+func Subset[E comparable](s1, s2 Stream[E]) bool {
+	// Index elements of the second stream into a set.
+	seen := kvstore.MappedMaker[E, struct{}]()()
+	s2(func(e E) bool {
+		seen.Put(e, struct{}{})
+		return true
+	})
+	// Check if all elements of the first stream are in the set.
+	return s1(func(e E) bool {
+		return seen.Get(e).Present()
+	})
+}
+
+// SubsetBy returns true if all elements of the first stream are in the second stream, compared by the given cmp.Comparer.
+//
+// Example usage:
+//
+//	ok := stream.SubsetBy(stream.Of(1, 2), stream.Of(1, 2, 3, 4), cmp.Natural[int]())
+//	fmt.Println(ok) // "true"
+func SubsetBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
+	// Index elements of the second stream into a set.
+	seen := kvstore.SortedMaker[E, struct{}](compare)()
+	s2(func(e E) bool {
+		seen.Put(e, struct{}{})
+		return true
+	})
+	// Check if all elements of the first stream are in the set.
+	return s1(func(e E) bool {
+		return seen.Get(e).Present()
+	})
+}
+
+// Superset returns true if all elements of the second stream are in the first stream.
+// The element type E must be comparable.
+//
+// Example usage:
+//
+//	ok := stream.Superset(stream.Of(1, 2, 3, 4), stream.Of(1, 2))
+//	fmt.Println(ok) // "true"
+func Superset[E comparable](s1, s2 Stream[E]) bool {
+	return Subset(s2, s1)
+}
+
+// SupersetBy returns true if all elements of the second stream are in the first stream, compared by the given cmp.Comparer.
+//
+// Example usage:
+//
+//	ok := stream.SupersetBy(stream.Of(1, 2, 3, 4), stream.Of(1, 2), cmp.Natural[int]())
+//	fmt.Println(ok) // "true"
+func SupersetBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
+	return SubsetBy(s2, s1, compare)
+}
+
+// SetEqual returns true if the two streams contain the same elements (in any order).
+// The element type E must be comparable.
+//
+// Example usage:
+//
+//	ok := stream.SetEqual(stream.Of(1, 2, 3), stream.Of(3, 2, 1))
+//	fmt.Println(ok) // "true"
+func SetEqual[E comparable](s1, s2 Stream[E]) bool {
+	return Subset(s1, s2) && Subset(s2, s1)
+}
+
+// SetEqualBy returns true if the two streams contain the same elements (in any order), compared by the given cmp.Comparer.
+//
+// Example usage:
+//
+//	ok := stream.SetEqualBy(stream.Of(1, 2, 3), stream.Of(3, 2, 1), cmp.Natural[int]())
+//	fmt.Println(ok) // "true"
+func SetEqualBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
+	return SubsetBy(s1, s2, compare) && SubsetBy(s2, s1, compare)
+}
