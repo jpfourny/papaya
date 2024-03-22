@@ -1,0 +1,69 @@
+package res
+
+import (
+	"fmt"
+	"github.com/jpfourny/papaya/pkg/opt"
+)
+
+// Result represents the result of an operation that may have a value and/or an error.
+// The result can be successful, failed, or partially successful.
+// A successful result has a value and no error.
+// A failed result has an error and no value.
+// A partially successful result has both a value and an error.
+// The result can be queried for its value and/or error, and for its success/failure status.
+type Result[T any] interface {
+	fmt.Stringer
+
+	// Succeeded returns true for a successful result; false otherwise.
+	// A successful result is one that has a value and no error.
+	Succeeded() bool
+
+	// PartiallySucceeded returns true for a partially successful result that includes both a value and an error.
+	// This is useful when a result is expected to have multiple values, and some of them are missing.
+	PartiallySucceeded() bool
+
+	// Failed returns true for a failed result; false otherwise.
+	// A failed result is one that has an error and no value.
+	Failed() bool
+
+	// HasError returns true if the result has an error; false otherwise.
+	// This is true for both failed and partially successful results.
+	HasError() bool
+
+	// HasValue returns true if the result has a value; false otherwise.
+	// This is true for both successful and partially successful results.
+	HasValue() bool
+
+	// Value returns the value of the result as an optional.
+	// If the result has a value, the optional is non-empty; otherwise, it is empty.
+	Value() opt.Optional[T]
+
+	// Error returns the error of the result as an optional.
+	// If the result has an error, the optional is non-empty; otherwise, it is empty.
+	Error() opt.Optional[error]
+}
+
+// OfSuccess returns a successful result with the provided value.
+func OfSuccess[T any](val T) Result[T] {
+	return Success[T]{Val: val}
+}
+
+// OfPartialSuccess returns a partially successful result with the provided value and error.
+func OfPartialSuccess[T any](val T, err error) Result[T] {
+	return PartialSuccess[T]{Val: val, Err: err}
+}
+
+// OfFailure returns a failed result with the provided error.
+func OfFailure[T any](err error) Result[T] {
+	return Failure[T]{Err: err}
+}
+
+// Of returns a result with the provided value and error.
+// If the error is nil, the result is successful; otherwise, it is failed.
+// This is a convenience function that creates a successful or failed result based on the provided error.
+func Of[T any](val T, err error) Result[T] {
+	if err != nil {
+		return OfFailure[T](err)
+	}
+	return OfSuccess[T](val)
+}
