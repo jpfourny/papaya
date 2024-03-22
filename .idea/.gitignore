@@ -7,3 +7,5 @@
 /modules.xml
 /papaya.iml
 /vcs.xml
+# GitHub Copilot persisted chat sessions
+/copilot/chatSessions
