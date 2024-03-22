@@ -2,6 +2,7 @@ package res
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -143,6 +144,196 @@ func TestOf(t *testing.T) {
 		}
 		if r.String() != "Failure(error)" {
 			t.Errorf("expected String() to return Failure(error)")
+		}
+	})
+}
+
+func TestMapValue(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		r := OfSuccess(42)
+		mapped := MapValue(r, func(val int) string {
+			return fmt.Sprintf("%d", val)
+		})
+		if !mapped.Succeeded() {
+			t.Errorf("expected Succeeded() to be true")
+		}
+		if mapped.PartiallySucceeded() {
+			t.Errorf("expected PartiallySucceeded() to be false")
+		}
+		if mapped.Failed() {
+			t.Errorf("expected Failed() to be false")
+		}
+		if !mapped.HasValue() {
+			t.Errorf("expected HasValue() to be true")
+		}
+		if mapped.HasError() {
+			t.Errorf("expected HasError() to be false")
+		}
+		if mapped.Value().GetOrZero() != "42" {
+			t.Errorf("expected Value() to return 42")
+		}
+		if mapped.Error().Present() {
+			t.Errorf("expected Error() to be empty")
+		}
+		if mapped.String() != "Success(\"42\")" {
+			t.Errorf("expected String() to return Success(\"42\")")
+		}
+	})
+
+	t.Run("Failure", func(t *testing.T) {
+		r := OfFailure[int](errors.New("error"))
+		mapped := MapValue(r, func(val int) string {
+			return fmt.Sprintf("%d", val)
+		})
+		if mapped.Succeeded() {
+			t.Errorf("expected Succeeded() to be false")
+		}
+		if mapped.PartiallySucceeded() {
+			t.Errorf("expected PartiallySucceeded() to be false")
+		}
+		if !mapped.Failed() {
+			t.Errorf("expected Failed() to be true")
+		}
+		if mapped.HasValue() {
+			t.Errorf("expected HasValue() to be false")
+		}
+		if !mapped.HasError() {
+			t.Errorf("expected HasError() to be true")
+		}
+		if mapped.Error().GetOrZero().Error() != "error" {
+			t.Errorf("expected Error() to return error")
+		}
+		if mapped.Value().Present() {
+			t.Errorf("expected Value() to be empty")
+		}
+		if mapped.String() != "Failure(error)" {
+			t.Errorf("expected String() to return Failure(error)")
+		}
+	})
+
+	t.Run("PartialSuccess", func(t *testing.T) {
+		r := OfPartialSuccess(42, errors.New("error"))
+		mapped := MapValue(r, func(val int) string {
+			return fmt.Sprintf("%d", val)
+		})
+		if mapped.Succeeded() {
+			t.Errorf("expected Succeeded() to be false")
+		}
+		if !mapped.PartiallySucceeded() {
+			t.Errorf("expected PartiallySucceeded() to be true")
+		}
+		if mapped.Failed() {
+			t.Errorf("expected Failed() to be false")
+		}
+		if !mapped.HasValue() {
+			t.Errorf("expected HasValue() to be true")
+		}
+		if !mapped.HasError() {
+			t.Errorf("expected HasError() to be true")
+		}
+		if mapped.Value().GetOrZero() != "42" {
+			t.Errorf("expected Value() to return 42")
+		}
+		if !mapped.Error().Present() {
+			t.Errorf("expected Error() to be non-empty")
+		}
+		if mapped.String() != "PartialSuccess(\"42\", error)" {
+			t.Errorf("expected String() to return PartialSuccess(\"42\", error)")
+		}
+	})
+}
+
+func TestMapError(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		r := OfSuccess(42)
+		mapped := MapError(r, func(err error) error {
+			return errors.New("mapped error")
+		})
+		if !mapped.Succeeded() {
+			t.Errorf("expected Succeeded() to be true")
+		}
+		if mapped.PartiallySucceeded() {
+			t.Errorf("expected PartiallySucceeded() to be false")
+		}
+		if mapped.Failed() {
+			t.Errorf("expected Failed() to be false")
+		}
+		if !mapped.HasValue() {
+			t.Errorf("expected HasValue() to be true")
+		}
+		if mapped.HasError() {
+			t.Errorf("expected HasError() to be false")
+		}
+		if mapped.Value().GetOrZero() != 42 {
+			t.Errorf("expected Value() to return 42")
+		}
+		if mapped.Error().Present() {
+			t.Errorf("expected Error() to be empty")
+		}
+		if mapped.String() != "Success(42)" {
+			t.Errorf("expected String() to return Success(42)")
+		}
+	})
+
+	t.Run("Failure", func(t *testing.T) {
+		r := OfFailure[int](errors.New("error"))
+		mapped := MapError(r, func(err error) error {
+			return errors.New("mapped error")
+		})
+		if mapped.Succeeded() {
+			t.Errorf("expected Succeeded() to be false")
+		}
+		if mapped.PartiallySucceeded() {
+			t.Errorf("expected PartiallySucceeded() to be false")
+		}
+		if !mapped.Failed() {
+			t.Errorf("expected Failed() to be true")
+		}
+		if mapped.HasValue() {
+			t.Errorf("expected HasValue() to be false")
+		}
+		if !mapped.HasError() {
+			t.Errorf("expected HasError() to be true")
+		}
+		if mapped.Error().GetOrZero().Error() != "mapped error" {
+			t.Errorf("expected Error() to return mapped error")
+		}
+		if mapped.Value().Present() {
+			t.Errorf("expected Value() to be empty")
+		}
+		if mapped.String() != "Failure(mapped error)" {
+			t.Errorf("expected String() to return Failure(mapped error)")
+		}
+	})
+
+	t.Run("PartialSuccess", func(t *testing.T) {
+		r := OfPartialSuccess(42, errors.New("error"))
+		mapped := MapError(r, func(err error) error {
+			return errors.New("mapped error")
+		})
+		if mapped.Succeeded() {
+			t.Errorf("expected Succeeded() to be false")
+		}
+		if !mapped.PartiallySucceeded() {
+			t.Errorf("expected PartiallySucceeded() to be true")
+		}
+		if mapped.Failed() {
+			t.Errorf("expected Failed() to be false")
+		}
+		if !mapped.HasValue() {
+			t.Errorf("expected HasValue() to be true")
+		}
+		if !mapped.HasError() {
+			t.Errorf("expected HasError() to be true")
+		}
+		if mapped.Value().GetOrZero() != 42 {
+			t.Errorf("expected Value() to return 42")
+		}
+		if mapped.Error().GetOrZero().Error() != "mapped error" {
+			t.Errorf("expected Error() to return mapped error")
+		}
+		if mapped.String() != "PartialSuccess(42, mapped error)" {
+			t.Errorf("expected String() to return PartialSuccess(42, mapped error)")
 		}
 	})
 }

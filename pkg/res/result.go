@@ -67,3 +67,30 @@ func Of[T any](val T, err error) Result[T] {
 	}
 	return OfSuccess[T](val)
 }
+
+// MapValue maps the value of the result to a new value using the provided mapper function.
+// The error of the result, if any, is unchanged.
+func MapValue[T, U any](r Result[T], valueMapper func(T) U) Result[U] {
+	errorMapper := func(err error) error { return err }
+	return Map[T, U](r, valueMapper, errorMapper)
+}
+
+// MapError maps the error of the result to a new error using the provided mapper function.
+// The value of the result, if any, is unchanged.
+func MapError[T any](r Result[T], errorMapper func(error) error) Result[T] {
+	valueMapper := func(val T) T { return val }
+	return Map[T, T](r, valueMapper, errorMapper)
+}
+
+// Map maps the result to a new result using the provided value and error mapper functions.
+// The value mapper function maps the value of the result to a new value.
+// The error mapper function maps the error of the result to a new error.
+func Map[T, U any](r Result[T], valueMapper func(T) U, errorMapper func(error) error) Result[U] {
+	if r.Succeeded() {
+		return OfSuccess[U](valueMapper(r.Value().GetOrZero()))
+	}
+	if r.PartiallySucceeded() {
+		return OfPartialSuccess[U](valueMapper(r.Value().GetOrZero()), errorMapper(r.Error().GetOrZero()))
+	}
+	return OfFailure[U](errorMapper(r.Error().GetOrZero()))
+}
