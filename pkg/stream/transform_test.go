@@ -77,18 +77,22 @@ func TestTruncate(t *testing.T) {
 	s = Truncate(Of("a", "b", "c"), 2, "...")
 	got = CollectSlice(s)
 	want = []string{"a", "b", "..."}
+	assert.ElementsMatch(t, got, want)
 
 	s = Truncate(Of("a", "b", "c"), 1, "...")
 	got = CollectSlice(s)
 	want = []string{"a", "..."}
+	assert.ElementsMatch(t, got, want)
 
 	s = Truncate(Of("a", "b", "c"), 0, "...")
 	got = CollectSlice(s)
 	want = []string{"..."}
+	assert.ElementsMatch(t, got, want)
 
 	s = Truncate(Empty[string](), 1, "...")
 	got = CollectSlice(s)
 	want = []string{}
+	assert.ElementsMatch(t, got, want)
 }
 
 func TestPadTail(t *testing.T) {

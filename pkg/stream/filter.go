@@ -3,6 +3,7 @@ package stream
 import (
 	"github.com/jpfourny/papaya/internal/kvstore"
 	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/pkg/pair"
 )
 
 // Predicate is a function that accepts a value of type E and returns a boolean.
@@ -23,6 +24,27 @@ func Filter[E any](s Stream[E], p Predicate[E]) Stream[E] {
 		return s(func(e E) bool {
 			if p(e) {
 				return yield(e)
+			}
+			return true
+		})
+	}
+}
+
+// FilterIndexed returns a stream that only contains elements and their index that pass the given Predicate.
+//
+// Example usage:
+//
+//	s := stream.FilterIndexed(stream.Of(1, 2, 3, 4), func(e int) bool {
+//	  return e % 2 == 0
+//	})
+//	out := stream.DebugString(s) // "<(1, 2), (3, 4)>"
+func FilterIndexed[E any](s Stream[E], p func(E) bool) Stream[pair.Pair[int64, E]] {
+	return func(yield Consumer[pair.Pair[int64, E]]) bool {
+		var i int64
+		return s(func(e E) bool {
+			i++
+			if p(e) {
+				return yield(pair.Of(i-1, e))
 			}
 			return true
 		})
@@ -67,6 +89,18 @@ func Skip[E any](s Stream[E], n int64) Stream[E] {
 			return yield(e)
 		})
 	}
+}
+
+// Slice returns a stream that contains elements from the start index (inclusive) to the end index (exclusive).
+// If the start index is greater than the end index, the returned stream will be empty.
+// If the end index is greater than the number of elements in the input stream, the returned stream will contain all elements from the start index.
+//
+// Example usage:
+//
+//	s := stream.Slice(stream.Of(1, 2, 3), 1, 2)
+//	out := stream.DebugString(s) // "<2>"
+func Slice[E any](s Stream[E], start, end int64) Stream[E] {
+	return Limit(Skip(s, start), end-start)
 }
 
 // Distinct returns a stream that only contains distinct elements of some comparable type E.

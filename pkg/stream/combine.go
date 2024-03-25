@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"context"
 	"github.com/jpfourny/papaya/pkg/constraint"
 	"github.com/jpfourny/papaya/pkg/opt"
 	"github.com/jpfourny/papaya/pkg/pair"
@@ -54,34 +55,11 @@ type OptionalCombiner[E1, E2, F any] func(E1, E2) opt.Optional[F]
 //	out := stream.DebugString(s) // "<foo1>"
 func CombineOrDiscard[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine OptionalCombiner[E1, E2, F]) Stream[F] {
 	return func(yield Consumer[F]) bool {
-		done := make(chan struct{})
-		defer close(done)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-		ch1 := make(chan E1)
-		go func() {
-			defer close(ch1)
-			s1(func(e E1) bool {
-				select {
-				case <-done:
-					return false
-				case ch1 <- e:
-					return true
-				}
-			})
-		}()
-
-		ch2 := make(chan E2)
-		go func() {
-			defer close(ch2)
-			s2(func(e E2) bool {
-				select {
-				case <-done:
-					return false
-				case ch2 <- e:
-					return true
-				}
-			})
-		}()
+		ch1 := CollectChannelAsyncCtx(ctx, s1, 0)
+		ch2 := CollectChannelAsyncCtx(ctx, s2, 0)
 
 		for {
 			e1, ok1 := <-ch1
@@ -133,9 +111,7 @@ func ZipWithIndex[E any, I constraint.Integer](s Stream[E], offset I) Stream[pai
 //	)
 //	out := stream.DebugString(s) // "<1, 2>"
 func UnzipFirst[E, F any](s Stream[pair.Pair[E, F]]) Stream[E] {
-	return Map(s, func(p pair.Pair[E, F]) E {
-		return p.First()
-	})
+	return Map(s, pair.Pair[E, F].First)
 }
 
 // UnzipSecond returns a stream that contains the second elements of each pair in the input stream.
@@ -150,7 +126,5 @@ func UnzipFirst[E, F any](s Stream[pair.Pair[E, F]]) Stream[E] {
 //	)
 //	out := stream.DebugString(s) // "<foo, bar>"
 func UnzipSecond[E, F any](s Stream[pair.Pair[E, F]]) Stream[F] {
-	return Map(s, func(p pair.Pair[E, F]) F {
-		return p.Second()
-	})
+	return Map(s, pair.Pair[E, F].Second)
 }

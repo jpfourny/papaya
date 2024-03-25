@@ -44,17 +44,17 @@ type Result[T any] interface {
 }
 
 // OfSuccess returns a successful result with the provided value.
-func OfSuccess[T any](val T) Result[T] {
+func OfSuccess[T any](val T) Success[T] {
 	return Success[T]{Val: val}
 }
 
 // OfPartialSuccess returns a partially successful result with the provided value and error.
-func OfPartialSuccess[T any](val T, err error) Result[T] {
+func OfPartialSuccess[T any](val T, err error) PartialSuccess[T] {
 	return PartialSuccess[T]{Val: val, Err: err}
 }
 
 // OfFailure returns a failed result with the provided error.
-func OfFailure[T any](err error) Result[T] {
+func OfFailure[T any](err error) Failure[T] {
 	return Failure[T]{Err: err}
 }
 

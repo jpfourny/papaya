@@ -1,7 +1,9 @@
 package stream
 
 import (
+	"context"
 	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/pkg/opt"
 	"github.com/jpfourny/papaya/pkg/stream/pred"
 )
 
@@ -153,4 +155,91 @@ func ContainsNone[E comparable](s Stream[E], es ...E) bool {
 //	out = stream.ContainsNoneBy(stream.Of(1, 2, 3), cmp.Natural[int](), 2, 4) // false
 func ContainsNoneBy[E any](s Stream[E], compare cmp.Comparer[E], es ...E) bool {
 	return NoneMatch(s, pred.InBy(compare, es...))
+}
+
+// ExactlySame returns true if the two streams are exactly the same; false otherwise.
+// The element type E must be comparable.
+//
+// Example usage:
+//
+//	out := stream.ExactlySame(stream.Of(1, 2, 3), stream.Of(1, 2, 3)) // true
+//	out = stream.ExactlySame(stream.Of(1, 2, 3), stream.Of(1, 2, 4)) // false
+func ExactlySame[E comparable](s1, s2 Stream[E]) bool {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch1 := CollectChannelAsyncCtx(ctx, s1, 0)
+	ch2 := CollectChannelAsyncCtx(ctx, s2, 0)
+
+	for {
+		e1, ok1 := <-ch1
+		e2, ok2 := <-ch2
+
+		if !ok1 && !ok2 {
+			break
+		} else if !ok1 || !ok2 || e1 != e2 {
+			return false
+		}
+	}
+
+	return true
+}
+
+// ExactlySameBy returns true if the two streams are exactly the same; false otherwise.
+// The elements are compared using the given cmp.Comparer.
+//
+// Example usage:
+//
+//	out := stream.ExactlySameBy(stream.Of(1, 2, 3), stream.Of(1, 2, 3), cmp.Natural[int]()) // true
+//	out = stream.ExactlySameBy(stream.Of(1, 2, 3), stream.Of(1, 2, 4), cmp.Natural[int]()) // false
+func ExactlySameBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch1 := CollectChannelAsyncCtx(ctx, s1, 0)
+	ch2 := CollectChannelAsyncCtx(ctx, s2, 0)
+
+	for {
+		e1, ok1 := <-ch1
+		e2, ok2 := <-ch2
+		if !ok1 && !ok2 {
+			break
+		} else if !ok1 || !ok2 || !compare.Equal(e1, e2) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// IndexOfMatches returns a stream of indices of elements that pass the given Predicate.
+//
+// Example usage:
+//
+//	out := stream.IndexOfMatches(stream.Of(1, 2, 3), pred.GreaterThan(2)) // "<2>"
+//	out = stream.IndexOfMatches(stream.Of(1, 2, 3), pred.GreaterThan(3)) // "<>"
+func IndexOfMatches[E any](s Stream[E], p Predicate[E]) Stream[int64] {
+	return UnzipFirst(FilterIndexed(s, p))
+}
+
+// IndexOfFirstMatch returns the index of the first element that passes the given Predicate.
+// If no element passes the Predicate, an empty Optional is returned.
+//
+// Example usage:
+//
+//	out := stream.IndexOfFirstMatch(stream.Of(1, 2, 3, 4), pred.GreaterThan(2)) // opt.Of(2)
+//	out = stream.IndexOfFirstMatch(stream.Of(1, 2, 3), pred.GreaterThan(3)) // opt.Empty[int64]()
+func IndexOfFirstMatch[E any](s Stream[E], p Predicate[E]) opt.Optional[int64] {
+	return First(IndexOfMatches(s, p))
+}
+
+// IndexOfLastMatch returns the index of the last element that passes the given Predicate.
+// If no element passes the Predicate, an empty Optional is returned.
+//
+// Example usage:
+//
+//	out := stream.IndexOfLastMatch(stream.Of(1, 2, 3, 4), pred.GreaterThan(2)) // opt.Of(4)
+//	out = stream.IndexOfLastMatch(stream.Of(1, 2, 3), pred.GreaterThan(3)) // opt.Empty[int64]()
+func IndexOfLastMatch[E any](s Stream[E], p Predicate[E]) opt.Optional[int64] {
+	return Last(IndexOfMatches(s, p))
 }

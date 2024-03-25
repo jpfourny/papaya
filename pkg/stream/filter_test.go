@@ -2,6 +2,7 @@ package stream
 
 import (
 	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/pkg/pair"
 	"testing"
 
 	"github.com/jpfourny/papaya/internal/assert"
@@ -13,6 +14,18 @@ func TestFilter(t *testing.T) {
 	})
 	got := CollectSlice(s)
 	want := []int{2, 4}
+	assert.ElementsMatch(t, got, want)
+}
+
+func TestFilterIndexed(t *testing.T) {
+	s := FilterIndexed(Of(1, 2, 3, 4), func(e int) bool {
+		return e%2 == 0
+	})
+	got := CollectSlice(s)
+	want := []pair.Pair[int64, int]{
+		pair.Of(int64(1), 2),
+		pair.Of(int64(3), 4),
+	}
 	assert.ElementsMatch(t, got, want)
 }
 
@@ -67,6 +80,13 @@ func TestSkip(t *testing.T) {
 		var want []int
 		assert.ElementsMatch(t, got, want)
 	})
+}
+
+func TestSlice(t *testing.T) {
+	s := Slice(Of(1, 2, 3, 4, 5), 1, 3)
+	got := CollectSlice(s)
+	want := []int{2, 3}
+	assert.ElementsMatch(t, got, want)
 }
 
 func TestDistinct(t *testing.T) {
