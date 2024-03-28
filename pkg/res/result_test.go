@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestOfSuccess(t *testing.T) {
-	r := OfSuccess(42)
+func TestOK(t *testing.T) {
+	r := OK(42)
 	if !r.Succeeded() {
 		t.Errorf("expected Succeeded() to be true")
 	}
@@ -34,8 +34,8 @@ func TestOfSuccess(t *testing.T) {
 	}
 }
 
-func TestOfFailure(t *testing.T) {
-	r := OfFailure[any](errors.New("error"))
+func TestFail(t *testing.T) {
+	r := Fail[any](errors.New("error"))
 	if r.Succeeded() {
 		t.Errorf("expected Succeeded() to be false")
 	}
@@ -62,8 +62,8 @@ func TestOfFailure(t *testing.T) {
 	}
 }
 
-func TestOfPartialSuccess(t *testing.T) {
-	r := OfPartialSuccess(42, errors.New("error"))
+func TestPartial(t *testing.T) {
+	r := Partial(42, errors.New("error"))
 	if r.Succeeded() {
 		t.Errorf("expected Succeeded() to be false")
 	}
@@ -90,9 +90,9 @@ func TestOfPartialSuccess(t *testing.T) {
 	}
 }
 
-func TestOf(t *testing.T) {
+func TestMaybe(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		r := Of(42, nil)
+		r := Maybe(42, nil)
 		if !r.Succeeded() {
 			t.Errorf("expected Succeeded() to be true")
 		}
@@ -120,7 +120,7 @@ func TestOf(t *testing.T) {
 	})
 
 	t.Run("Failure", func(t *testing.T) {
-		r := Of(42, errors.New("error"))
+		r := Maybe(42, errors.New("error"))
 		if r.Succeeded() {
 			t.Errorf("expected Succeeded() to be false")
 		}
@@ -150,7 +150,7 @@ func TestOf(t *testing.T) {
 
 func TestMapValue(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		r := OfSuccess(42)
+		r := OK(42)
 		mapped := MapValue(r, func(val int) string {
 			return fmt.Sprintf("%d", val)
 		})
@@ -181,7 +181,7 @@ func TestMapValue(t *testing.T) {
 	})
 
 	t.Run("Failure", func(t *testing.T) {
-		r := OfFailure[int](errors.New("error"))
+		r := Fail[int](errors.New("error"))
 		mapped := MapValue(r, func(val int) string {
 			return fmt.Sprintf("%d", val)
 		})
@@ -212,7 +212,7 @@ func TestMapValue(t *testing.T) {
 	})
 
 	t.Run("PartialSuccess", func(t *testing.T) {
-		r := OfPartialSuccess(42, errors.New("error"))
+		r := Partial(42, errors.New("error"))
 		mapped := MapValue(r, func(val int) string {
 			return fmt.Sprintf("%d", val)
 		})
@@ -245,8 +245,8 @@ func TestMapValue(t *testing.T) {
 
 func TestMapError(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		r := OfSuccess(42)
-		mapped := MapError(r, func(err error) error {
+		r := OK(42)
+		mapped := MapError[int](r, func(err error) error {
 			return errors.New("mapped error")
 		})
 		if !mapped.Succeeded() {
@@ -276,8 +276,8 @@ func TestMapError(t *testing.T) {
 	})
 
 	t.Run("Failure", func(t *testing.T) {
-		r := OfFailure[int](errors.New("error"))
-		mapped := MapError(r, func(err error) error {
+		r := Fail[int](errors.New("error"))
+		mapped := MapError[int](r, func(err error) error {
 			return errors.New("mapped error")
 		})
 		if mapped.Succeeded() {
@@ -307,8 +307,8 @@ func TestMapError(t *testing.T) {
 	})
 
 	t.Run("PartialSuccess", func(t *testing.T) {
-		r := OfPartialSuccess(42, errors.New("error"))
-		mapped := MapError(r, func(err error) error {
+		r := Partial(42, errors.New("error"))
+		mapped := MapError[int](r, func(err error) error {
 			return errors.New("mapped error")
 		})
 		if mapped.Succeeded() {

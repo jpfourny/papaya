@@ -43,29 +43,29 @@ type Result[T any] interface {
 	Error() opt.Optional[error]
 }
 
-// OfSuccess returns a successful result with the provided value.
-func OfSuccess[T any](val T) Success[T] {
+// OK returns a successful result with the provided value.
+func OK[T any](val T) Success[T] {
 	return Success[T]{Val: val}
 }
 
-// OfPartialSuccess returns a partially successful result with the provided value and error.
-func OfPartialSuccess[T any](val T, err error) PartialSuccess[T] {
+// Partial returns a partially-successful result with the provided value and error.
+func Partial[T any](val T, err error) PartialSuccess[T] {
 	return PartialSuccess[T]{Val: val, Err: err}
 }
 
-// OfFailure returns a failed result with the provided error.
-func OfFailure[T any](err error) Failure[T] {
+// Fail returns a failed result with the provided error.
+func Fail[T any](err error) Failure[T] {
 	return Failure[T]{Err: err}
 }
 
-// Of returns a result with the provided value and error.
+// Maybe returns a result based on the provided value and error.
 // If the error is nil, the result is successful; otherwise, it is failed.
 // This is a convenience function that creates a successful or failed result based on the provided error.
-func Of[T any](val T, err error) Result[T] {
+func Maybe[T any](val T, err error) Result[T] {
 	if err != nil {
-		return OfFailure[T](err)
+		return Fail[T](err)
 	}
-	return OfSuccess[T](val)
+	return OK[T](val)
 }
 
 // MapValue maps the value of the result to a new value using the provided mapper function.
@@ -87,10 +87,10 @@ func MapError[T any](r Result[T], errorMapper func(error) error) Result[T] {
 // The error mapper function maps the error of the result to a new error.
 func Map[T, U any](r Result[T], valueMapper func(T) U, errorMapper func(error) error) Result[U] {
 	if r.Succeeded() {
-		return OfSuccess[U](valueMapper(r.Value().GetOrZero()))
+		return OK[U](valueMapper(r.Value().GetOrZero()))
 	}
 	if r.PartiallySucceeded() {
-		return OfPartialSuccess[U](valueMapper(r.Value().GetOrZero()), errorMapper(r.Error().GetOrZero()))
+		return Partial[U](valueMapper(r.Value().GetOrZero()), errorMapper(r.Error().GetOrZero()))
 	}
-	return OfFailure[U](errorMapper(r.Error().GetOrZero()))
+	return Fail[U](errorMapper(r.Error().GetOrZero()))
 }
