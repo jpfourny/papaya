@@ -49,12 +49,20 @@ func OK[T any](val T) Success[T] {
 }
 
 // Partial returns a partially-successful result with the provided value and error.
+// Panics if the error is nil.
 func Partial[T any](val T, err error) PartialSuccess[T] {
+	if err == nil {
+		panic("error must be non-nil")
+	}
 	return PartialSuccess[T]{Val: val, Err: err}
 }
 
 // Fail returns a failed result with the provided error.
+// Panics if the error is nil.
 func Fail[T any](err error) Failure[T] {
+	if err == nil {
+		panic("error must be non-nil")
+	}
 	return Failure[T]{Err: err}
 }
 
