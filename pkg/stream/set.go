@@ -91,17 +91,11 @@ func IntersectionAllBy[E any](compare cmp.Comparer[E], ss ...Stream[E]) Stream[E
 }
 
 func intersection[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) Stream[E] {
-	// Exactly 2 streams; intersect ss[0] and ss[1].
 	return func(yield Consumer[E]) bool {
-		// Index elements of the first stream into a set.
-		seen := kv()
-		s1(func(e E) bool {
-			seen.Put(e, struct{}{})
-			return true
-		})
-		// Yield elements of the second stream that are in the set.
-		return s2(func(e E) bool {
-			if seen.Get(e).Present() {
+		set2 := toSet(s2, kv)
+		// Yield elements of the first stream that are in the set.
+		return s1(func(e E) bool {
+			if set2.Get(e).Present() {
 				return yield(e)
 			}
 			return true
@@ -134,15 +128,10 @@ func DifferenceBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) Stream[E] {
 
 func difference[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) Stream[E] {
 	return func(yield Consumer[E]) bool {
-		// Index elements of the second stream into a set.
-		seen := kv()
-		s2(func(e E) bool {
-			seen.Put(e, struct{}{})
-			return true
-		})
+		set2 := toSet(s2, kv)
 		// Yield elements of the first stream that are not in the set.
 		return s1(func(e E) bool {
-			if !seen.Get(e).Present() {
+			if !set2.Get(e).Present() {
 				return yield(e)
 			}
 			return true
@@ -181,16 +170,7 @@ func SymmetricDifferenceBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) Str
 //	ok := stream.Subset(stream.Of(1, 2), stream.Of(1, 2, 3, 4))
 //	fmt.Println(ok) // "true"
 func Subset[E comparable](s1, s2 Stream[E]) bool {
-	// Index elements of the second stream into a set.
-	seen := kvstore.MappedMaker[E, struct{}]()()
-	s2(func(e E) bool {
-		seen.Put(e, struct{}{})
-		return true
-	})
-	// Check if all elements of the first stream are in the set.
-	return s1(func(e E) bool {
-		return seen.Get(e).Present()
-	})
+	return subset(s1, s2, kvstore.MappedMaker[E, struct{}]())
 }
 
 // SubsetBy returns true if all elements of the first stream are in the second stream, compared by the given cmp.Comparer.
@@ -200,15 +180,16 @@ func Subset[E comparable](s1, s2 Stream[E]) bool {
 //	ok := stream.SubsetBy(stream.Of(1, 2), stream.Of(1, 2, 3, 4), cmp.Natural[int]())
 //	fmt.Println(ok) // "true"
 func SubsetBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
+	return subset(s1, s2, kvstore.SortedMaker[E, struct{}](compare))
+}
+
+func subset[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) bool {
 	// Index elements of the second stream into a set.
-	seen := kvstore.SortedMaker[E, struct{}](compare)()
-	s2(func(e E) bool {
-		seen.Put(e, struct{}{})
-		return true
-	})
+	set2 := toSet(s2, kv)
 	// Check if all elements of the first stream are in the set.
+	// If an element is not in the set, the result is false
 	return s1(func(e E) bool {
-		return seen.Get(e).Present()
+		return set2.Get(e).Present()
 	})
 }
 
@@ -233,7 +214,7 @@ func SupersetBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
 	return SubsetBy(s2, s1, compare)
 }
 
-// SetEqual returns true if the two streams contain the same elements (in any order).
+// SetEqual returns true if the two streams contain the same elements, ignoring order and duplicates (ie: set equality).
 // The element type E must be comparable.
 //
 // Example usage:
@@ -241,7 +222,7 @@ func SupersetBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
 //	ok := stream.SetEqual(stream.Of(1, 2, 3), stream.Of(3, 2, 1))
 //	fmt.Println(ok) // "true"
 func SetEqual[E comparable](s1, s2 Stream[E]) bool {
-	return Subset(s1, s2) && Subset(s2, s1)
+	return setEqual(s1, s2, kvstore.MappedMaker[E, struct{}]())
 }
 
 // SetEqualBy returns true if the two streams contain the same elements (in any order), compared by the given cmp.Comparer.
@@ -251,5 +232,25 @@ func SetEqual[E comparable](s1, s2 Stream[E]) bool {
 //	ok := stream.SetEqualBy(stream.Of(1, 2, 3), stream.Of(3, 2, 1), cmp.Natural[int]())
 //	fmt.Println(ok) // "true"
 func SetEqualBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) bool {
-	return SubsetBy(s1, s2, compare) && SubsetBy(s2, s1, compare)
+	return setEqual(s1, s2, kvstore.SortedMaker[E, struct{}](compare))
+}
+
+func setEqual[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) bool {
+	set1 := toSet(s1, kv)
+	set2 := toSet(s2, kv)
+	if set1.Size() != set2.Size() {
+		return false
+	}
+	return set1.ForEachKey(func(e E) bool {
+		return set2.Get(e).Present()
+	})
+}
+
+func toSet[E any](s Stream[E], kv kvstore.Maker[E, struct{}]) kvstore.Store[E, struct{}] {
+	set := kv()
+	s(func(e E) bool {
+		set.Put(e, struct{}{})
+		return true
+	})
+	return set
 }

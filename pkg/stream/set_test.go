@@ -204,8 +204,14 @@ func TestSetEqual(t *testing.T) {
 	if SetEqual(Of(1, 2, 3), Of(2, 3, 4)) {
 		t.Errorf("SetEqual(Of(1, 2, 3), Of(2, 3, 4)) = true; want false")
 	}
+	if SetEqual(Of(1, 2, 3), Of(1, 2)) {
+		t.Errorf("SetEqual(Of(1, 2, 3), Of(1, 2) = true; want false")
+	}
 	if !SetEqual(Of(1, 2, 3), Of(3, 2, 1)) {
 		t.Errorf("SetEqual(Of(1, 2, 3), Of(3, 2, 1)) = false; want true")
+	}
+	if !SetEqual(Of(1, 2, 3, 3), Of(3, 2, 1, 1)) {
+		t.Errorf("SetEqual(Of(1, 2, 3, 3), Of(3, 2, 1, 1)) = false; want true")
 	}
 }
 
@@ -213,7 +219,13 @@ func TestSetEqualBy(t *testing.T) {
 	if SetEqualBy(Of(1, 2, 3), Of(2, 3, 4), cmp.Natural[int]()) {
 		t.Errorf("SetEqualBy(Of(1, 2, 3), Of(2, 3, 4), cmp.Natural[int]()) = true; want false")
 	}
+	if SetEqualBy(Of(1, 2, 3), Of(1, 2), cmp.Natural[int]()) {
+		t.Errorf("SetEqualBy(Of(1, 2, 3), Of(1, 2), cmp.Natural[int]()) = true; want false")
+	}
 	if !SetEqualBy(Of(1, 2, 3), Of(3, 2, 1), cmp.Natural[int]()) {
 		t.Errorf("SetEqualBy(Of(1, 2, 3), Of(3, 2, 1), cmp.Natural[int]()) = false; want true")
+	}
+	if !SetEqualBy(Of(1, 2, 3, 3), Of(3, 2, 1, 1), cmp.Natural[int]()) {
+		t.Errorf("SetEqualBy(Of(1, 2, 3, 3), Of(3, 2, 1, 1), cmp.Natural[int]()) = false; want true")
 	}
 }

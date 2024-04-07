@@ -9,9 +9,11 @@ import (
 // Store represents a container of key-value pairs.
 // Used internally for key-grouping and key-joining operations.
 type Store[K, V any] interface {
+	Size() int
 	Get(key K) opt.Optional[V]
 	Put(key K, value V)
 	ForEach(func(key K, value V) bool) bool
+	ForEachKey(func(key K) bool) bool
 }
 
 // NewMapped creates a new Store backed by a map.
@@ -49,6 +51,10 @@ func SortedMaker[K any, V any](compare cmp.Comparer[K]) Maker[K, V] {
 // The key type K must be comparable.
 type mappedStore[K comparable, V any] map[K]V
 
+func (s mappedStore[K, V]) Size() int {
+	return len(s)
+}
+
 func (s mappedStore[K, V]) Get(key K) opt.Optional[V] {
 	if v, ok := s[key]; ok {
 		return opt.Of(v)
@@ -69,12 +75,25 @@ func (s mappedStore[K, V]) ForEach(yield func(K, V) bool) bool {
 	return true
 }
 
+func (s mappedStore[K, V]) ForEachKey(yield func(K) bool) bool {
+	for k := range s {
+		if !yield(k) {
+			return false
+		}
+	}
+	return true
+}
+
 // sortedStore provides an implementation of Store using sorted slices and binary-search.
 // The keys are ordered using the given cmp.Comparer.
 type sortedStore[K any, V any] struct {
 	compare cmp.Comparer[K]
 	keys    []K
 	values  []V
+}
+
+func (s *sortedStore[K, V]) Size() int {
+	return len(s.keys)
 }
 
 func (s *sortedStore[K, V]) Get(key K) opt.Optional[V] {
@@ -102,9 +121,18 @@ func (s *sortedStore[K, V]) indexOf(key K) (int, bool) {
 	return slices.BinarySearchFunc(s.keys, key, s.compare)
 }
 
-func (s *sortedStore[K, V]) ForEach(f func(K, V) bool) bool {
+func (s *sortedStore[K, V]) ForEach(yield func(K, V) bool) bool {
 	for i, k := range s.keys {
-		if !f(k, s.values[i]) {
+		if !yield(k, s.values[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *sortedStore[K, V]) ForEachKey(yield func(K) bool) bool {
+	for _, k := range s.keys {
+		if !yield(k) {
 			return false
 		}
 	}
