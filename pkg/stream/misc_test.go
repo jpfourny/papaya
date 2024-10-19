@@ -1,12 +1,12 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/pkg/stream/mapper"
-	"github.com/jpfourny/papaya/pkg/stream/pred"
+	"github.com/jpfourny/papaya/v2/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/v2/pkg/stream/pred"
 	"testing"
 
-	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/v2/internal/assert"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
 )
 
 func TestForEach(t *testing.T) {

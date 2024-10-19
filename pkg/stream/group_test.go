@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 )
 
 func TestGroupByKey(t *testing.T) {

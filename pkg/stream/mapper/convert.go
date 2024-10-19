@@ -1,6 +1,6 @@
 package mapper
 
-import "github.com/jpfourny/papaya/pkg/constraint"
+import "github.com/jpfourny/papaya/v2/pkg/constraint"
 
 // BoolToBool returns a function that accepts a value of boolean type E and returns a value of boolean type F.
 func BoolToBool[E constraint.Boolean, F constraint.Boolean]() func(E) F {

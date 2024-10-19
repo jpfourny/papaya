@@ -6,8 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/internal/assert"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 )
 
 func TestFromSlice(t *testing.T) {

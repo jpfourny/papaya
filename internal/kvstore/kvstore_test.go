@@ -1,9 +1,9 @@
 package kvstore
 
 import (
-	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/v2/internal/assert"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
 	"testing"
 )
 

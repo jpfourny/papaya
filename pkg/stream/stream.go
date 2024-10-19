@@ -10,11 +10,6 @@ package stream
 // If the stream is exhausted, it must return true.
 type Stream[E any] func(c Consumer[E])
 
-// Consumer represents a function that accepts a yielded element of type E and returns a boolean value.
-// The boolean value indicates whether the consumer wishes to continue accepting elements.
-// If the consumer returns false, the caller must stop yielding elements.
-type Consumer[E any] func(yield E) (cont bool)
-
 // Empty returns a stream that does not contain any elements.
 // It always returns true when invoked with a consumer.
 //

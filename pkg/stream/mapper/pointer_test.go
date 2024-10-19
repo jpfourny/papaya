@@ -3,8 +3,8 @@ package mapper
 import (
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/opt"
-	"github.com/jpfourny/papaya/pkg/ptr"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/ptr"
 )
 
 func TestPtrRef(t *testing.T) {

@@ -1,11 +1,11 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/opt"
-	"github.com/jpfourny/papaya/pkg/stream/mapper"
-	"github.com/jpfourny/papaya/pkg/stream/reducer"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/v2/pkg/stream/reducer"
 )
 
 // Reducer represents a function that takes two inputs of type E and returns an output of type E.

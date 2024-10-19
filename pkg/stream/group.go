@@ -1,11 +1,11 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/internal/kvstore"
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/v2/internal/kvstore"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/stream/mapper"
 )
 
 // GroupByKey returns a stream that values key-value pairs by key.

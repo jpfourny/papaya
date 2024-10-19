@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
 )
 
 func TestTryParseBool(t *testing.T) {

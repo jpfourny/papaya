@@ -3,7 +3,7 @@ package stream
 import (
 	"testing"
 
-	"github.com/jpfourny/papaya/internal/assert"
+	"github.com/jpfourny/papaya/v2/internal/assert"
 )
 
 func TestEmpty(t *testing.T) {

@@ -1,8 +1,8 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/internal/kvstore"
-	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/internal/kvstore"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
 )
 
 // Union combines multiple streams into a single stream (concatenation).
@@ -15,18 +15,11 @@ import (
 //	out := stream.DebugString(s) // "<1, 2, 3, 4, 4, 5, 6>"
 func Union[E any](ss ...Stream[E]) Stream[E] {
 	return func(yield Consumer[E]) {
-		stopped := false
-		yield2 := func(e E) bool { // Stop-sensing consumer.
-			if yield(e) {
-				return true
-			}
-			stopped = true
-			return false
-		}
+		yield2, stopped := stopSensingConsumer(yield)
 
 		for _, s := range ss {
 			s(yield2)
-			if stopped {
+			if *stopped {
 				return // Consumer saw enough.
 			}
 		}

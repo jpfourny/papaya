@@ -1,6 +1,6 @@
 package mapper
 
-import "github.com/jpfourny/papaya/pkg/opt"
+import "github.com/jpfourny/papaya/v2/pkg/opt"
 
 // If returns a function that accepts a value of any type E and returns the result of calling the `ifTrue` function as an opt.Optional or an empty opt, if the `cond` function returns false.
 //

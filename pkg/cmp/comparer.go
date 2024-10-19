@@ -4,8 +4,8 @@ import (
 	stdcmp "cmp"
 	"time"
 
-	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 )
 
 // Comparer is a function that compares two values of the same type E and returns an integer.

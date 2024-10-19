@@ -1,10 +1,10 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
 )
 
 func TestReduce(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/jpfourny/papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
 )
 
 // Sprint returns a function that accepts a value of any type and returns the result of calling fmt.Sprint on it.

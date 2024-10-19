@@ -1,11 +1,11 @@
 package env
 
 import (
-	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/opt"
-	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/stream"
-	"github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/stream"
+	"github.com/jpfourny/papaya/v2/pkg/stream/mapper"
 	"os"
 	"strings"
 	"time"

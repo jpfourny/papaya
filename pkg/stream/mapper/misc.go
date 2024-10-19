@@ -1,6 +1,6 @@
 package mapper
 
-import "github.com/jpfourny/papaya/pkg/constraint"
+import "github.com/jpfourny/papaya/v2/pkg/constraint"
 
 // Identity returns a function that accepts a value of any type E and returns that value.
 func Identity[E any]() func(E) E {

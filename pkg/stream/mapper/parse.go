@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jpfourny/papaya/pkg/constraint"
-	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
 )
 
 // TryParseBool returns a function that accepts a value of any string type and returns the result of calling strconv.ParseBool on it.

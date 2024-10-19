@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 	"iter"
 )
 

@@ -2,11 +2,11 @@ package stream
 
 import (
 	"fmt"
-	"github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/v2/pkg/stream/mapper"
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/stream"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/stream"
 )
 
 func TestMapIntToString(t *testing.T) {

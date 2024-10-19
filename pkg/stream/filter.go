@@ -1,9 +1,9 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/internal/kvstore"
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/internal/kvstore"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 )
 
 // Predicate is a function that accepts a value of type E and returns a boolean.

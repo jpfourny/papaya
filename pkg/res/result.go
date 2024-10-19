@@ -2,7 +2,7 @@ package res
 
 import (
 	"fmt"
-	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
 )
 
 // Result represents the result of an operation that may have a value and/or an error.

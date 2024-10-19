@@ -3,8 +3,8 @@ package pred
 import (
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/ptr"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/ptr"
 )
 
 func TestNil(t *testing.T) {

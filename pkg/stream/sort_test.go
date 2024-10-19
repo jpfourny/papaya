@@ -1,7 +1,8 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/internal/assert"
+	"github.com/jpfourny/papaya/v2/internal/assert"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 	"testing"
 )
 
@@ -25,5 +26,20 @@ func TestSortBy(t *testing.T) {
 	})
 	got := CollectSlice(s)
 	want := []int{1, 2, 3}
+	assert.ElementsMatch(t, got, want)
+}
+
+func TestSortKeyAsc(t *testing.T) {
+	s := SortKeyAsc(Of(
+		pair.Of(3, "c"),
+		pair.Of(1, "a"),
+		pair.Of(2, "b"),
+	))
+	got := CollectSlice(s)
+	want := []pair.Pair[int, string]{
+		pair.Of(1, "a"),
+		pair.Of(2, "b"),
+		pair.Of(3, "c"),
+	}
 	assert.ElementsMatch(t, got, want)
 }

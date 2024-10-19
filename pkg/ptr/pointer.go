@@ -1,6 +1,6 @@
 package ptr
 
-import "github.com/jpfourny/papaya/pkg/opt"
+import "github.com/jpfourny/papaya/v2/pkg/opt"
 
 // Nil returns a nil pointer to the type parameter V.
 func Nil[V any]() *V {

@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
 )
 
 // Mapper represents a function that transforms an input of type E to an output of type F.
@@ -66,18 +66,11 @@ type StreamMapper[E, F any] func(from E) (to Stream[F])
 //	out := stream.DebugString(s) // "<1, 1, 2, 2, 3, 3>"
 func FlatMap[E, F any](s Stream[E], m StreamMapper[E, F]) Stream[F] {
 	return func(yield Consumer[F]) {
-		stopped := false
-		yield2 := func(f F) bool { // Stop-sensing consumer.
-			if yield(f) {
-				return true
-			}
-			stopped = true
-			return false
-		}
+		yield2, stopped := stopSensingConsumer(yield)
 
 		s(func(e E) bool {
 			m(e)(yield2)
-			if stopped {
+			if *stopped {
 				return false // Consumer saw enough.
 			}
 			return true
@@ -104,17 +97,10 @@ type SliceMapper[E, F any] func(from E) (to []F)
 func FlatMapSlice[E, F any](s Stream[E], m SliceMapper[E, F]) Stream[F] {
 	return func(yield Consumer[F]) {
 		s(func(e E) bool {
-			stopped := false
-			yield2 := func(f F) bool { // Stop-sensing consumer.
-				if yield(f) {
-					return true
-				}
-				stopped = true
-				return false
-			}
+			yield2, stopped := stopSensingConsumer(yield)
 
 			FromSlice(m(e))(yield2)
-			if stopped {
+			if *stopped {
 				return false // Consumer saw enough.
 			}
 			return true

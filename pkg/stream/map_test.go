@@ -2,10 +2,10 @@ package stream
 
 import (
 	"fmt"
-	"github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/v2/pkg/stream/mapper"
 	"testing"
 
-	"github.com/jpfourny/papaya/internal/assert"
+	"github.com/jpfourny/papaya/v2/internal/assert"
 )
 
 func TestMap(t *testing.T) {

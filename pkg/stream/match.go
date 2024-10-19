@@ -2,9 +2,9 @@ package stream
 
 import (
 	"context"
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/opt"
-	"github.com/jpfourny/papaya/pkg/stream/pred"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/stream/pred"
 )
 
 // AnyMatch returns true if any element in the stream matches the given Predicate.

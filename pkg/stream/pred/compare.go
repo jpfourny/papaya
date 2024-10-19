@@ -4,8 +4,8 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
 )
 
 // Equal returns a function that returns true if the provided value is equal to the provided want value.

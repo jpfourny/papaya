@@ -1,8 +1,8 @@
 package env
 
 import (
-	"github.com/jpfourny/papaya/pkg/pair"
-	"github.com/jpfourny/papaya/pkg/stream"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/stream"
 	"os"
 	"testing"
 	"time"

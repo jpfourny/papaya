@@ -1,6 +1,6 @@
 package pred
 
-import "github.com/jpfourny/papaya/pkg/cmp"
+import "github.com/jpfourny/papaya/v2/pkg/cmp"
 
 // In returns a function that returns true if the provided value is equal to any of the provided want values.
 // It uses the == operator to compare values.

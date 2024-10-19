@@ -3,7 +3,7 @@ package stream
 import (
 	"context"
 
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 )
 
 // FromSlice creates a stream that iterates over the elements of the given slice.

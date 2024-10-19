@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"github.com/jpfourny/papaya/pkg/opt"
-	"github.com/jpfourny/papaya/pkg/ptr"
+	"github.com/jpfourny/papaya/v2/pkg/opt"
+	"github.com/jpfourny/papaya/v2/pkg/ptr"
 )
 
 // PtrRef returns a function that accepts a value of type V and returns a pointer to a copy of the value (on the heap).

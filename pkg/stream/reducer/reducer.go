@@ -1,8 +1,8 @@
 package reducer
 
 import (
-	"github.com/jpfourny/papaya/pkg/cmp"
-	"github.com/jpfourny/papaya/pkg/constraint"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/constraint"
 )
 
 // Sum returns a function that computes the sum of two given values.

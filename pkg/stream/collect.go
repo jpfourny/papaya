@@ -2,9 +2,9 @@ package stream
 
 import (
 	"context"
-	"github.com/jpfourny/papaya/pkg/stream/mapper"
+	"github.com/jpfourny/papaya/v2/pkg/stream/mapper"
 
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 )
 
 // CollectSlice returns a slice containing all elements from the stream.

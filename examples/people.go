@@ -3,7 +3,7 @@ package examples
 import (
 	"fmt"
 
-	"github.com/jpfourny/papaya/pkg/cmp"
+	"github.com/jpfourny/papaya/v2/pkg/cmp"
 )
 
 type Person struct {

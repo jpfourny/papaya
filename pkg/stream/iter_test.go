@@ -1,8 +1,8 @@
 package stream
 
 import (
-	"github.com/jpfourny/papaya/internal/assert"
-	"github.com/jpfourny/papaya/pkg/pair"
+	"github.com/jpfourny/papaya/v2/internal/assert"
+	"github.com/jpfourny/papaya/v2/pkg/pair"
 	"maps"
 	"slices"
 	"testing"
@@ -23,5 +23,5 @@ func TestFromIterSeq2(t *testing.T) {
 		pair.Of(3, 4),
 		pair.Of(5, 6),
 	}
-	assert.ElementsMatch(t, got, want)
+	assert.ElementsMatchAnyOrder(t, got, want)
 }

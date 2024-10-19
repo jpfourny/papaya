@@ -3,7 +3,7 @@ package pred
 import (
 	"testing"
 
-	"github.com/jpfourny/papaya/pkg/ptr"
+	"github.com/jpfourny/papaya/v2/pkg/ptr"
 )
 
 func TestEqual(t *testing.T) {
