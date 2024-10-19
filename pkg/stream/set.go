@@ -14,13 +14,22 @@ import (
 //	s := stream.Union(stream.Of(1, 2, 3, 4), stream.Of(4, 5, 6))
 //	out := stream.DebugString(s) // "<1, 2, 3, 4, 4, 5, 6>"
 func Union[E any](ss ...Stream[E]) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
+		stopped := false
+		yield2 := func(e E) bool { // Stop-sensing consumer.
+			if yield(e) {
+				return true
+			}
+			stopped = true
+			return false
+		}
+
 		for _, s := range ss {
-			if !s(yield) {
-				return false // Consumer saw enough.
+			s(yield2)
+			if stopped {
+				return // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -51,11 +60,11 @@ func IntersectionAll[E comparable](ss ...Stream[E]) Stream[E] {
 	case len(ss) == 1: // One stream; result is the same stream.
 		return ss[0]
 	case len(ss) > 2: // More than 2 streams; recursively intersect stream pairs.
-		return Intersection(ss[0], IntersectionAll(ss[1:]...))
+		return Intersection[E](ss[0], IntersectionAll[E](ss[1:]...))
 	}
 
 	// Exactly 2 streams; intersect ss[0] and ss[1].
-	return Intersection(ss[0], ss[1])
+	return Intersection[E](ss[0], ss[1])
 }
 
 // IntersectionBy returns a stream that contains elements that are in the given streams, compared by the given cmp.Comparer.
@@ -83,18 +92,18 @@ func IntersectionAllBy[E any](compare cmp.Comparer[E], ss ...Stream[E]) Stream[E
 	case len(ss) == 1: // One stream; result is the same stream.
 		return ss[0]
 	case len(ss) > 2: // More than 2 streams; recursively intersect stream pairs.
-		return IntersectionBy(ss[0], IntersectionAllBy(compare, ss[1:]...), compare)
+		return IntersectionBy[E](ss[0], IntersectionAllBy[E](compare, ss[1:]...), compare)
 	}
 
 	// Exactly 2 streams; intersect ss[0] and ss[1].
-	return IntersectionBy(ss[0], ss[1], compare)
+	return IntersectionBy[E](ss[0], ss[1], compare)
 }
 
 func intersection[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		set2 := toSet(s2, kv)
 		// Yield elements of the first stream that are in the set.
-		return s1(func(e E) bool {
+		s1(func(e E) bool {
 			if set2.Get(e).Present() {
 				return yield(e)
 			}
@@ -127,10 +136,10 @@ func DifferenceBy[E any](s1, s2 Stream[E], compare cmp.Comparer[E]) Stream[E] {
 }
 
 func difference[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		set2 := toSet(s2, kv)
 		// Yield elements of the first stream that are not in the set.
-		return s1(func(e E) bool {
+		s1(func(e E) bool {
 			if !set2.Get(e).Present() {
 				return yield(e)
 			}
@@ -188,9 +197,15 @@ func subset[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) bool {
 	set2 := toSet(s2, kv)
 	// Check if all elements of the first stream are in the set.
 	// If an element is not in the set, the result is false
-	return s1(func(e E) bool {
-		return set2.Get(e).Present()
+	allInSet := true
+	s1(func(e E) bool {
+		if !set2.Get(e).Present() {
+			allInSet = false
+			return false
+		}
+		return true
 	})
+	return allInSet
 }
 
 // Superset returns true if all elements of the second stream are in the first stream.
@@ -241,9 +256,15 @@ func setEqual[E any](s1, s2 Stream[E], kv kvstore.Maker[E, struct{}]) bool {
 	if set1.Size() != set2.Size() {
 		return false
 	}
-	return set1.ForEachKey(func(e E) bool {
-		return set2.Get(e).Present()
+	allFound := true
+	set1.ForEachKey(func(e E) bool {
+		if !set2.Get(e).Present() {
+			allFound = false
+			return false
+		}
+		return true
 	})
+	return allFound
 }
 
 func toSet[E any](s Stream[E], kv kvstore.Maker[E, struct{}]) kvstore.Store[E, struct{}] {

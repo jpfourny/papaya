@@ -47,7 +47,7 @@ func GroupBySortedKey[K any, V any](s Stream[pair.Pair[K, V]], keyCompare cmp.Co
 }
 
 func groupByKey[K any, V any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, []V]) Stream[pair.Pair[K, []V]] {
-	return func(yield Consumer[pair.Pair[K, []V]]) bool {
+	return func(yield Consumer[pair.Pair[K, []V]]) {
 		groups := kv()
 		s(func(p pair.Pair[K, V]) bool {
 			g := groups.Get(p.First()).GetOrZero()
@@ -55,7 +55,7 @@ func groupByKey[K any, V any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, []V
 			groups.Put(p.First(), g)
 			return true
 		})
-		return groups.ForEach(func(k K, vs []V) bool {
+		groups.ForEach(func(k K, vs []V) bool {
 			return yield(pair.Of(k, vs))
 		})
 	}
@@ -105,7 +105,7 @@ func ReduceBySortedKey[K any, V any](s Stream[pair.Pair[K, V]], keyCompare cmp.C
 }
 
 func reduceByKey[K any, V any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, V], reduce Reducer[V]) Stream[pair.Pair[K, V]] {
-	return func(yield Consumer[pair.Pair[K, V]]) bool {
+	return func(yield Consumer[pair.Pair[K, V]]) {
 		groups := kv()
 		s(func(p pair.Pair[K, V]) bool {
 			groups.Get(p.First()).IfPresentElse(
@@ -118,7 +118,7 @@ func reduceByKey[K any, V any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, V]
 			)
 			return true
 		})
-		return groups.ForEach(func(k K, v V) bool {
+		groups.ForEach(func(k K, v V) bool {
 			return yield(pair.Of(k, v))
 		})
 	}
@@ -182,7 +182,7 @@ func AggregateBySortedKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], keyComp
 }
 
 func aggregateByKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], kv kvstore.Maker[K, A], identity A, accumulate Accumulator[A, V], finish Finisher[A, F]) Stream[pair.Pair[K, F]] {
-	return func(yield Consumer[pair.Pair[K, F]]) bool {
+	return func(yield Consumer[pair.Pair[K, F]]) {
 		groups := kv()
 		s(func(p pair.Pair[K, V]) bool {
 			groups.Get(p.First()).IfPresentElse(
@@ -198,7 +198,6 @@ func aggregateByKey[K any, V, A, F any](s Stream[pair.Pair[K, V]], kv kvstore.Ma
 		groups.ForEach(func(k K, a A) bool {
 			return yield(pair.Of(k, finish(a)))
 		})
-		return true
 	}
 }
 

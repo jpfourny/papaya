@@ -14,6 +14,7 @@ func TestRef(t *testing.T) {
 	p := Ref(i)
 	if p == nil {
 		t.Errorf("Ref(%v) = %v; want non-nil", i, p)
+		return
 	}
 	if *p != i {
 		t.Errorf("Ref(%v) = %v; want %v", i, p, i)

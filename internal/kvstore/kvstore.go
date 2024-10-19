@@ -12,8 +12,8 @@ type Store[K, V any] interface {
 	Size() int
 	Get(key K) opt.Optional[V]
 	Put(key K, value V)
-	ForEach(func(key K, value V) bool) bool
-	ForEachKey(func(key K) bool) bool
+	ForEach(func(key K, value V) bool)
+	ForEachKey(func(key K) bool)
 }
 
 // NewMapped creates a new Store backed by a map.
@@ -66,22 +66,20 @@ func (s mappedStore[K, V]) Put(key K, value V) {
 	s[key] = value
 }
 
-func (s mappedStore[K, V]) ForEach(yield func(K, V) bool) bool {
+func (s mappedStore[K, V]) ForEach(yield func(K, V) bool) {
 	for k, v := range s {
 		if !yield(k, v) {
-			return false
+			break
 		}
 	}
-	return true
 }
 
-func (s mappedStore[K, V]) ForEachKey(yield func(K) bool) bool {
+func (s mappedStore[K, V]) ForEachKey(yield func(K) bool) {
 	for k := range s {
 		if !yield(k) {
-			return false
+			break
 		}
 	}
-	return true
 }
 
 // sortedStore provides an implementation of Store using sorted slices and binary-search.
@@ -121,20 +119,18 @@ func (s *sortedStore[K, V]) indexOf(key K) (int, bool) {
 	return slices.BinarySearchFunc(s.keys, key, s.compare)
 }
 
-func (s *sortedStore[K, V]) ForEach(yield func(K, V) bool) bool {
+func (s *sortedStore[K, V]) ForEach(yield func(K, V) bool) {
 	for i, k := range s.keys {
 		if !yield(k, s.values[i]) {
-			return false
+			break
 		}
 	}
-	return true
 }
 
-func (s *sortedStore[K, V]) ForEachKey(yield func(K) bool) bool {
+func (s *sortedStore[K, V]) ForEachKey(yield func(K) bool) {
 	for _, k := range s.keys {
 		if !yield(k) {
-			return false
+			break
 		}
 	}
-	return true
 }

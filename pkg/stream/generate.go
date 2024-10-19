@@ -15,10 +15,10 @@ type Generator[E any] func() E
 //	s := stream.Generate(func() int { return 1	})
 //	out := stream.DebugString(s) // "<1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...>"
 func Generate[E any](next Generator[E]) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		for {
 			if !yield(next()) {
-				return false
+				return
 			}
 		}
 	}

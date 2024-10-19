@@ -20,8 +20,8 @@ type Predicate[E any] func(e E) (pass bool)
 //	})
 //	out := stream.DebugString(s) // "<2>"
 func Filter[E any](s Stream[E], p Predicate[E]) Stream[E] {
-	return func(yield Consumer[E]) bool {
-		return s(func(e E) bool {
+	return func(yield Consumer[E]) {
+		s(func(e E) bool {
 			if p(e) {
 				return yield(e)
 			}
@@ -39,9 +39,9 @@ func Filter[E any](s Stream[E], p Predicate[E]) Stream[E] {
 //	})
 //	out := stream.DebugString(s) // "<(1, 2), (3, 4)>"
 func FilterIndexed[E any](s Stream[E], p func(E) bool) Stream[pair.Pair[int64, E]] {
-	return func(yield Consumer[pair.Pair[int64, E]]) bool {
+	return func(yield Consumer[pair.Pair[int64, E]]) {
 		var i int64
-		return s(func(e E) bool {
+		s(func(e E) bool {
 			i++
 			if p(e) {
 				return yield(pair.Of(i-1, e))
@@ -59,12 +59,12 @@ func FilterIndexed[E any](s Stream[E], p func(E) bool) Stream[pair.Pair[int64, E
 //	s := stream.Limit(stream.Of(1, 2, 3), 2)
 //	out := stream.DebugString(s) // "<1, 2>"
 func Limit[E any](s Stream[E], n int64) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		n := n // Shadow with a copy.
 		if n <= 0 {
-			return true
+			return // Nothing to do.
 		}
-		return s(func(e E) bool {
+		s(func(e E) bool {
 			n--
 			return yield(e) && n > 0
 		})
@@ -79,9 +79,9 @@ func Limit[E any](s Stream[E], n int64) Stream[E] {
 //	s := stream.Skip(stream.Of(1, 2, 3), 2)
 //	out := stream.DebugString(s) // "<3>"
 func Skip[E any](s Stream[E], n int64) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		n := n // Shadow with a copy.
-		return s(func(e E) bool {
+		s(func(e E) bool {
 			if n > 0 {
 				n--
 				return true
@@ -124,9 +124,9 @@ func DistinctBy[E any](s Stream[E], compare cmp.Comparer[E]) Stream[E] {
 }
 
 func distinct[E any](s Stream[E], kv kvstore.Maker[E, struct{}]) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		seen := kv()
-		return s(func(e E) bool {
+		s(func(e E) bool {
 			if seen.Get(e).Present() {
 				return true // Skip.
 			}

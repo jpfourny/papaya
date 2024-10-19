@@ -311,6 +311,36 @@ func TestIfPresentElse(t *testing.T) {
 	})
 }
 
+func TestTap(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		var called bool
+		o := Of(42)
+		o2 := o.Tap(func(i int) {
+			called = true
+		})
+		if o != o2 {
+			t.Errorf("expected Tap to return the Optional")
+		}
+		if !called {
+			t.Errorf("expected callback to be called")
+		}
+	})
+
+	t.Run("None", func(t *testing.T) {
+		var called bool
+		o := Empty[int]()
+		o2 := o.Tap(func(i int) {
+			called = true
+		})
+		if o != o2 {
+			t.Errorf("expected Tap to return the Optional")
+		}
+		if called {
+			t.Errorf("expected callback to not be called")
+		}
+	})
+}
+
 func TestString(t *testing.T) {
 	t.Run("Some", func(t *testing.T) {
 		o := Of(42)

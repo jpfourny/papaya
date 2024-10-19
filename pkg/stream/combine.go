@@ -54,7 +54,7 @@ type OptionalCombiner[E1, E2, F any] func(E1, E2) opt.Optional[F]
 //	)
 //	out := stream.DebugString(s) // "<foo1>"
 func CombineOrDiscard[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine OptionalCombiner[E1, E2, F]) Stream[F] {
-	return func(yield Consumer[F]) bool {
+	return func(yield Consumer[F]) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -65,12 +65,12 @@ func CombineOrDiscard[E1, E2, F any](s1 Stream[E1], s2 Stream[E2], combine Optio
 			e1, ok1 := <-ch1
 			e2, ok2 := <-ch2
 			if !ok1 || !ok2 {
-				return true
+				return
 			}
 
 			if o := combine(e1, e2); o.Present() {
 				if !yield(o.GetOrZero()) {
-					return false
+					return
 				}
 			}
 		}

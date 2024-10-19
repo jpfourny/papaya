@@ -47,6 +47,11 @@ func (s Some[V]) IfPresentElse(f func(V), _ func()) bool {
 	return true
 }
 
+func (s Some[V]) Tap(f func(V)) Optional[V] {
+	f(s.Value)
+	return s
+}
+
 func (s Some[V]) String() string {
 	return fmt.Sprintf("Some(%#v)", s.Value)
 }

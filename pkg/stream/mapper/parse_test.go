@@ -161,7 +161,7 @@ func TestParseFloatOr(t *testing.T) {
 
 	m64 := ParseFloatOr[string, float64](64, 0)
 	got64 := m64("42.42")
-	want64 := float64(42.42)
+	want64 := 42.42
 	if got64 != want64 {
 		t.Errorf("ParseFloatOr(64, 0)(`42.42`) = %#v; want %#v", got64, want64)
 	}
@@ -221,7 +221,7 @@ func TestParseComplexOr(t *testing.T) {
 
 	m128 := ParseComplexOr[string, complex128](128, 0)
 	got128 := m128("(42.42+42.42i)")
-	want128 := complex128(42.42 + 42.42i)
+	want128 := 42.42 + 42.42i
 	if got128 != want128 {
 		t.Errorf("ParseComplexOr(128, 0)(`(42.42+42.42i)`) = %#v; want %#v", got128, want128)
 	}

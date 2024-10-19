@@ -42,6 +42,10 @@ func (n None[V]) IfPresentElse(_ func(V), f func()) bool {
 	return false
 }
 
+func (n None[V]) Tap(_ func(V)) Optional[V] {
+	return n
+}
+
 func (n None[V]) String() string {
 	return "None"
 }

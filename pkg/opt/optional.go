@@ -34,6 +34,10 @@ type Optional[V any] interface {
 	// Filter returns an Optional containing the value contained in the Optional if the provided predicate returns true for that value.
 	// If the Optional is empty, an empty Optional is returned.
 	Filter(func(V) bool) Optional[V]
+
+	// Tap calls the provided function with the value contained in the Optional if the Optional is not empty.
+	// Returns the Optional itself for chaining.
+	Tap(func(V)) Optional[V]
 }
 
 // Empty returns an empty Optional (None).

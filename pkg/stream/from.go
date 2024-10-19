@@ -14,13 +14,12 @@ import (
 //	s := stream.FromSlice([]int{1, 2, 3})
 //	out := stream.DebugString(s) // "<1, 2, 3>"
 func FromSlice[E any](s []E) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		for _, e := range s {
 			if !yield(e) {
-				return false // Consumer saw enough.
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -32,13 +31,12 @@ func FromSlice[E any](s []E) Stream[E] {
 //	s := stream.FromSliceBackwards([]int{1, 2, 3})
 //	out := stream.DebugString(s) // "<3, 2, 1>"
 func FromSliceBackwards[E any](s []E) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		for i := len(s) - 1; i >= 0; i-- {
 			if !yield(s[i]) {
-				return false // Consumer saw enough.
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -51,13 +49,12 @@ func FromSliceBackwards[E any](s []E) Stream[E] {
 //	s := stream.FromSliceWithIndex([]int{1, 2, 3})
 //	out := stream.DebugString(s) // "<(0, 1), (1, 2), (2, 3)>"
 func FromSliceWithIndex[E any](s []E) Stream[pair.Pair[int, E]] {
-	return func(yield Consumer[pair.Pair[int, E]]) bool {
+	return func(yield Consumer[pair.Pair[int, E]]) {
 		for i, e := range s {
 			if !yield(pair.Of(i, e)) {
-				return false // Consumer saw enough.
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -70,13 +67,12 @@ func FromSliceWithIndex[E any](s []E) Stream[pair.Pair[int, E]] {
 //	s := stream.FromSliceWithIndexBackwards([]int{1, 2, 3})
 //	out := stream.DebugString(s) // "<(2, 3), (1, 2), (0, 1)>"
 func FromSliceWithIndexBackwards[E any](s []E) Stream[pair.Pair[int, E]] {
-	return func(yield Consumer[pair.Pair[int, E]]) bool {
+	return func(yield Consumer[pair.Pair[int, E]]) {
 		for i := len(s) - 1; i >= 0; i-- {
 			if !yield(pair.Of(i, s[i])) {
-				return false // Consumer saw enough.
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -89,13 +85,12 @@ func FromSliceWithIndexBackwards[E any](s []E) Stream[pair.Pair[int, E]] {
 //	s := stream.FromMap(map[int]string{1: "foo", 2: "bar"})
 //	out := stream.DebugString(s) // "<(1, foo), (2, bar)>"
 func FromMap[K comparable, V any](m map[K]V) Stream[pair.Pair[K, V]] {
-	return func(yield Consumer[pair.Pair[K, V]]) bool {
+	return func(yield Consumer[pair.Pair[K, V]]) {
 		for k, v := range m {
 			if !yield(pair.Of(k, v)) {
-				return false // Consumer saw enough.
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -107,13 +102,12 @@ func FromMap[K comparable, V any](m map[K]V) Stream[pair.Pair[K, V]] {
 //	s := stream.FromMapKeys(map[int]string{1: "foo", 2: "bar"})
 //	out := stream.DebugString(s) // "<1, 2>" // Order not guaranteed.
 func FromMapKeys[K comparable, V any](m map[K]V) Stream[K] {
-	return func(yield Consumer[K]) bool {
+	return func(yield Consumer[K]) {
 		for k := range m {
 			if !yield(k) {
-				return false // Consumer saw enough.
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -125,13 +119,12 @@ func FromMapKeys[K comparable, V any](m map[K]V) Stream[K] {
 //	s := stream.FromMapValues(map[int]string{1: "foo", 2: "bar"})
 //	out := stream.DebugString(s) // "<foo, bar>" // Order not guaranteed.
 func FromMapValues[K comparable, V any](m map[K]V) Stream[V] {
-	return func(yield Consumer[V]) bool {
+	return func(yield Consumer[V]) {
 		for _, v := range m {
 			if !yield(v) {
-				return false
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -151,13 +144,12 @@ func FromMapValues[K comparable, V any](m map[K]V) Stream[V] {
 //	s := stream.FromChannel(ch)
 //	out := stream.DebugString(s) // "<1, 2>"
 func FromChannel[E any](ch <-chan E) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		for e := range ch {
 			if !yield(e) {
-				return false // Consumer saw enough.
+				break // Consumer saw enough.
 			}
 		}
-		return true
 	}
 }
 
@@ -176,18 +168,18 @@ func FromChannel[E any](ch <-chan E) Stream[E] {
 //	s := stream.FromChannelCtx(ctx, ch)
 //	out := stream.DebugString(s) // "<1, 2>"
 func FromChannelCtx[E any](ctx context.Context, ch <-chan E) Stream[E] {
-	return func(yield Consumer[E]) bool {
+	return func(yield Consumer[E]) {
 		for {
 			select {
 			case e, ok := <-ch:
 				if !ok {
-					return true
+					return // Channel closed.
 				}
 				if !yield(e) {
-					return false
+					return // Consumer saw enough.
 				}
 			case <-ctx.Done():
-				return true
+				return // Context done.
 			}
 		}
 	}
